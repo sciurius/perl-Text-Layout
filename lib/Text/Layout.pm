@@ -1473,8 +1473,6 @@ sub nyi {
     croak("Method \"" . (caller(1))[3] . "\" not implemented");
 }
 
-=back
-
 =head1 SEE ALSO
 
 Description of the Pango Markup Language:
@@ -1500,8 +1498,6 @@ You can find documentation for this module with the perldoc command.
 
 Please report any bugs or feature requests using the issue tracker on
 GitHub.
-
-=back
 
 =head1 LICENSE
 
