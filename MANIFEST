@@ -1,0 +1,13 @@
+Changes
+lib/Text/Layout.pm
+lib/Text/Layout/Cairo.pm
+lib/Text/Layout/FontConfig.pm
+lib/Text/Layout/Markdown.pm
+lib/Text/Layout/Pango.pm
+lib/Text/Layout/PDFAPI2.pm
+Makefile.PL
+MANIFEST
+README
+t/00-load.t
+tests/pdfapi1.pl
+tests/md1.pl
