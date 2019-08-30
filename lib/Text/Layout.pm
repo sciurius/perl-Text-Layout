@@ -10,7 +10,7 @@ use Carp;
 
 use Text::Layout::Version;
 
-our $VERSION = $Text::Layout::VERSION;
+our $VERSION = $Text::Layout::Version::VERSION;
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ See L<https://developer.gnome.org/pango/stable/pango-Layout-Objects.html>.
 The package uses Text::Layout::FontConfig to organize fonts by
 description.
 
-Example:
+Example, using PDF::API2 integration:
 
     # Create a PDF document.
     my $pdf = PDF::API2->new;	# or PDF::Builder->new
@@ -40,13 +40,13 @@ Example:
     my $ctx  = $page->text;
 
     # Create a markup instance.
-    my $layout = Text::Layout->new( $pdf, corefonts => 1 );
+    my $layout = Text::Layout->new($pdf);
 
     $layout->set_font_description(Text::Layout::FontConfig->from_string("times 40"));
     $layout->set_markup( q{The <i><span foreground="red">quick</span> <span size="20"><b>brown</b></span></i> fox} );
 
     # Center text.
-    $layout->set_width(595000);	# width of A4 page, Pango units
+    $layout->set_width(595);	# width of A4 page
     $layout->set_alignment("center");
 
     # Render it.
@@ -215,7 +215,7 @@ Not supported.
 
 =cut
 
-sub context_changed { ... }
+sub context_changed { nyi() }
 
 =over
 
@@ -227,7 +227,7 @@ Not supported.
 
 =cut
 
-sub get_serial { ... }
+sub get_serial { nyi() }
 
 =over
 
@@ -584,7 +584,7 @@ Not supported.
 
 =cut
 
-sub set_markup_with_accel { ... }
+sub set_markup_with_accel { nyi() }
 
 =over
 
@@ -598,9 +598,9 @@ Not yet implemented.
 
 =cut
 
-sub set_attributes { ... }
+sub set_attributes { nyi() }
 
-sub get_attributes { ... }
+sub get_attributes { nyi() }
 
 =over
 
@@ -741,7 +741,7 @@ Not yet implemented.
 sub set_wrap {
     my ( $self, $mode ) = @_;
     $self->{_wrap} = $mode;
-    ...;
+    nyi();
 }
 
 =over
@@ -773,7 +773,7 @@ Queries whether the layout had to wrap any paragraphs.
 
 sub is_wrapped {
     my ( $self ) = @_;
-    ...;
+    nyi();
 }
 
 =over
@@ -790,7 +790,7 @@ Not yet implemented.
 
 sub set_ellipsize {
     my ( $self ) = @_;
-    ...;
+    nyi();
 }
 
 =over
@@ -822,7 +822,7 @@ Not yet implemented.
 
 sub is_ellipsized {
     my ( $self ) = @_;
-    ...;
+    nyi();
 }
 
 =over
@@ -846,7 +846,7 @@ Not yet implemented.
 sub set_indent {
     my ( $self, $size ) = @_;
     $self->{_currentindent} = $self->{_pu2px}->($size);
-    ...;
+    nyi();
 }
 
 =over
@@ -966,7 +966,7 @@ Not yet implemented.
 sub set_justify {
     my ( $self, $state ) = @_;
     $self->{_currentjustify} = !!$state;
-    ...;
+    nyi();
 }
 
 =over
@@ -997,9 +997,9 @@ Not supported.
 
 =cut
 
-sub set_auto_dir { ... }
+sub set_auto_dir { nyi() }
 
-sub get_auto_dir { ... }
+sub get_auto_dir { nyi() }
 
 =over
 
@@ -1051,9 +1051,9 @@ Not yet implemented.
 
 =cut
 
-sub set_tabs { ... }
+sub set_tabs { nyi() }
 
-sub get_tabs { ... }
+sub get_tabs { nyi() }
 
 =over
 
@@ -1067,9 +1067,9 @@ Not yet implemented.
 
 =cut
 
-sub set_single_paragraph_mode { ... }
+sub set_single_paragraph_mode { nyi() }
 
-sub get_single_paragraph_mode { ... }
+sub get_single_paragraph_mode { nyi() }
 
 =over
 
@@ -1083,7 +1083,7 @@ Not yet implemented.
 
 =cut
 
-sub get_unknown_glyphs_count { ... }
+sub get_unknown_glyphs_count { nyi() }
 
 =over
 
@@ -1097,9 +1097,9 @@ Not implemented.
 
 =cut
 
-sub get_log_attrs { ... }
+sub get_log_attrs { nyi() }
 
-sub get_log_attrs_readonly { ... }
+sub get_log_attrs_readonly { nyi() }
 
 =over
 
@@ -1115,7 +1115,7 @@ Not yet implemented.
 
 =cut
 
-sub index_to_pos { ... }
+sub index_to_pos { nyi() }
 
 =over
 
@@ -1129,7 +1129,7 @@ Not yet implemented.
 
 =cut
 
-sub index_to_line_x { ... }
+sub index_to_line_x { nyi() }
 
 =over
 
@@ -1143,7 +1143,7 @@ Not yet implemented.
 
 =cut
 
-sub xy_to_index { ... }
+sub xy_to_index { nyi() }
 
 =over
 
@@ -1467,6 +1467,10 @@ sub set_pango_scale {
 sub get_pango_scale {
     my ( $self ) = @_;
     $self->{_px2pu}->(1);
+}
+
+sub nyi {
+    croak("Method \"" . (caller(1))[3] . "\" not implemented");
 }
 
 =back

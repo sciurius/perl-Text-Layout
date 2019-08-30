@@ -5,6 +5,7 @@ lib/Text/Layout/FontConfig.pm
 lib/Text/Layout/Markdown.pm
 lib/Text/Layout/Pango.pm
 lib/Text/Layout/PDFAPI2.pm
+lib/Text/Layout/Version.pm
 Makefile.PL
 MANIFEST
 README
