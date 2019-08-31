@@ -96,8 +96,8 @@ sub showbb {
     $gfx //= $page->gfx;
 
     # Bounding box, top-left coordinates.
-    my @e = @{($layout->get_pixel_extents)[1]};
-    printf( "EXT: %.2f %.2f %.2f %.2f\n", @e );
+    my %e = %{($layout->get_pixel_extents)[1]};
+    printf( "EXT: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
 
     # NOTE: Some fonts include natural spacing in the bounding box.
     # NOTE: Some fonts exclude accents on capitals from the bounding box.
@@ -107,13 +107,13 @@ sub showbb {
     showloc();
 
     # Show baseline.
-    line( $e[0], $layout->get_baseline/$PANGO_SCALE, $e[2]-$e[0], 0, $col );
+    line( $e{x}, $layout->get_baseline/$PANGO_SCALE, $e{x} + $e{width}, 0, $col );
 
     # Show bounding box.
     $gfx->linewidth( 0.25 );
     $gfx->strokecolor($col);
-    $e[3] = -$e[3];		# PDF coordinates
-    $gfx->rectxy(@e);
+    $e{height} = -$e{height};		# PDF coordinates
+    $gfx->rectxy( $e{x}, $e{y}, $e{x}+$e{width}, $e{height} );;
     $gfx->stroke;
     $gfx->restore;
 }

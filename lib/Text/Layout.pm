@@ -1153,9 +1153,10 @@ Computes the logical and ink extents of the layout.
 
 Logical extents are usually what you want for positioning things.
 
-Return value is an array (not a ref!) containing two array refs with 4
-values: C<x>, C<y>, C<width>, and C<height>. The first reflects the
-ink extents, the second the logical extents.
+Return value is an array (in list context) or an array ref (in scalar
+context) containing two hash refs with 4 values: C<x>, C<y>, C<width>,
+and C<height>. The first reflects the ink extents, the second the
+logical extents.
 
 C<x> will reflect the offset when text is centered or right aligned.
 It will be zero for left aligned text. For right aligned text, it will
@@ -1175,8 +1176,8 @@ sub get_extents {
     my ( $self ) = @_;
 
     my @bb = @{$self->get_bbox};
-    my $res = [ $bb[0], 0, $bb[2], $bb[3]-$bb[1] ];
-    return ( $res, $res );
+    my $res = { x => $bb[0], y => 0, width => $bb[2], height => $bb[3]-$bb[1] };
+    return wantarray ? ( $res, $res ) : [ $res, $res ];
 }
 
 =over
@@ -1193,8 +1194,8 @@ sub get_pixel_extents {
     my ( $self ) = @_;
 
     my @bb = @{$self->get_pixel_bbox};
-    my $res = [ $bb[0], 0, $bb[2], $bb[3]-$bb[1] ];
-    return ( $res, $res );
+    my $res = { x => $bb[0], y => 0, width => $bb[2], height => $bb[3]-$bb[1] };
+    return wantarray ? ( $res, $res ) : [ $res, $res ];
 }
 
 =over
@@ -1215,7 +1216,7 @@ returned.
 
 sub get_size {
     my ( $self ) = @_;
-    my $e = $self->get_extents->[1];
+    my $e = ($self->get_extents)[1];
     wantarray
       ? return ( $e->{width}, $e->{height} )
       : return { width => $e->{width}, height => $e->{height} };
@@ -1233,7 +1234,7 @@ Same as get_size().
 
 sub get_pixel_size {
     my ( $self ) = @_;
-    my $e = $self->get_pixel_extents->[1];
+    my $e = ($self->get_pixel_extents)[1];
     wantarray
       ? return ( $e->{width}, $e->{height} )
       : return { width => $e->{width}, height => $e->{height} };

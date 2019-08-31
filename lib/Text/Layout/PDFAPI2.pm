@@ -3,9 +3,10 @@
 use strict;
 use warnings;
 use utf8;
-use Carp;
 
 package Text::Layout::PDFAPI2;
+
+use Carp;
 
 sub init {
     my ( $pkg, @args ) = @_;
@@ -95,7 +96,7 @@ sub load_font {
 	    };
 	}
 
-	croak("Cannot load font: ", $font, "\n") unless $ff;
+	croak( "Cannot load font: ", $font, "\n", $@ ) unless $ff;
 	# warn("Loaded font: $description->{load}\n");
 	$description->{font} = $ff;
 	$description->{cache}->{font} = $ff;
