@@ -374,8 +374,6 @@ You can find documentation for this module with the perldoc command.
 Please report any bugs or feature requests using the issue tracker on
 GitHub.
 
-=back
-
 =head1 LICENSE
 
 Copyright (C) 2019, Johan Vromans
