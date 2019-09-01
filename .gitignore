@@ -3,3 +3,7 @@
 \#.*#
 blib
 Released
+Makefile
+CPAN
+MYMETA.*
+pm_to_blib

@@ -12,6 +12,8 @@ use Text::Layout::Version;
 
 our $VERSION = $Text::Layout::VERSION;
 
+use Text::Layout::FontDescriptor;
+
 =head1 NAME
 
 Text::Layout::FontConfig - Pango style font description for Text::Layout
@@ -36,23 +38,41 @@ with new() will always return the same object.
 
 my %fonts;
 my @dirs;
+my $loader;
 
 =head2 METHODS
 
 =over
 
-=item new
+=item new( [ atts... ] )
 
 For convenience only. Text::Layout::FontConfig is a singleton.
 Creating objects with new() will always return the same object.
+
+Attributes:
+
+=over
+
+=item corefonts
+
+If true, a predefined set of font names (the PDF corefonts) is registered.
+
+=back
 
 =back
 
 =cut
 
 sub new {
-    my ( $pkg ) = @_;
-    return bless \my $i => $pkg;
+    my ( $pkg, %atts ) = @_;
+    my $self = bless \my $i => $pkg;
+    if ( $atts{corefonts} ) {
+	$self->register_corefonts;
+    }
+    if ( $atts{loader} ) {
+	$loader = $atts{loader};
+    }
+    return $self;
 }
 
 =over
@@ -107,9 +127,11 @@ sub register_font {
     }
 
     croak("Cannot find font: ", $font, "\n") unless $ff;
- 
-    $fonts{lc $_}->{$style}->{$weight}->{load} = $ff
-      foreach split(/\s*,\s*/, $family);
+
+    foreach ( split(/\s*,\s*/, $family) ) {
+	$fonts{lc $_}->{$style}->{$weight}->{loader} = $loader;
+	$fonts{lc $_}->{$style}->{$weight}->{loader_data} = $ff;
+    }
 
 }
 
@@ -132,7 +154,6 @@ sub add_fontdirs {
 	    carp("Skipped font dir: $_ [$!]");
 	    next;
 	}
-	#	$pdf->addFontDirs($_);
 	push( @dirs, $_ );
     }
 }
@@ -220,7 +241,17 @@ sub register_corefonts {
     register_font( "WingDings",             "WingDings"               );
 }
 
-# Find a font based on family, style and weight.
+=over
+
+=item find_font( $family, $style, $weight )
+
+Returns a font descriptor based on the given family, style and weight.
+
+Note: No fallback yet.
+
+=back
+
+=cut
 
 sub find_font {
     shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
@@ -234,40 +265,43 @@ sub find_font {
 	 && $fonts{$family}->{$style}->{$weight} ) {
 	my $ff;
 	if ( $ff = $fonts{$family}->{$style}->{$weight}->{font} ) {
-	    return
-	      bless { font   => $ff,
-		      family => $family,
-		      style  => $style,
-		      weight => $weight } => __PACKAGE__;
+	    return Text::Layout::FontDescriptor->new
+	      ( font   => $ff,
+		family => $family,
+		style  => $style,
+		weight => $weight );
 	}
-	elsif ( $ff = $fonts{$family}->{$style}->{$weight}->{load} ) {
-	    return
-	      bless { load   => $ff,
-		      cache  => $fonts{$family}->{$style}->{$weight},
-		      family => $family,
-		      style  => $style,
-		      weight => $weight } => __PACKAGE__;
+	elsif ( $ff = $fonts{$family}->{$style}->{$weight}->{loader_data} ) {
+	    return Text::Layout::FontDescriptor->new
+	      ( loader_data => $ff,
+		loader => $loader,
+		cache  => $fonts{$family}->{$style}->{$weight},
+		family => $family,
+		style  => $style,
+		weight => $weight );
 	}
     }
 
     # TODO: Some form of font fallback.
 
-    croak("Cannot find font: $family $style\n");
+    croak("Cannot find font: $family $style $weight\n");
 }
 
 =over
 
 =item from_string( $description )
 
-Returns a font object using a Pango-style font description, e.g.
+Returns a font descriptor using a Pango-style font description, e.g.
 C<Sans Italic 14>.
+
+Note: No fallback yet.
 
 =back
 
 =cut
 
-my $stylep  = qr/^(bi|bo|boldoblique|bolditalic|i|o|oblique|italic)$/;
-my $weightp = qr/^(b|bi|bo|bold|boldoblique|bolditalic)$/;
+my $stylep  = qr/^( (?:bold)? (?:oblique|italic)  )$/ix;
+my $weightp = qr/^( (?:bold)  (?:oblique|italic)? )$/ix;
 
 sub from_string {
     shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
@@ -301,32 +335,18 @@ sub from_string {
     }
 
     my $res = find_font( $family, $style, $weight );
-    $res->{size} = $size if $res && $size;
+    $res->set_size($size) if $res && $size;
     $res;
 }
 
-=over
-
-=item to_string
-
-Returns a Pango-style font string, C<Sans Italic 14>.
-
-=back
-
-=cut
-
-sub to_string {
-    my ( $self ) = @_;
-    my $desc = ucfirst( $self->{family} );
-    $desc .= ucfirst( $self->{style} ) if $self->{style} ne "normal";
-    $desc .= " " . ucfirst( $self->{weight} ) if $self->{weight} ne "normal";
-    $desc .= " " . $self->{size} if $self->{size};
-    return $desc;
-}
-
-use overload '""' => \&to_string;
-
 ################ Helper Routines ################
+
+sub set_loader {
+    shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
+    $loader = shift;
+    croak("Font loader must be a code reference")
+      unless UNIVERSAL::isa( $loader, "CODE" );
+}
 
 # Normalize (and check) a style specification.
 
@@ -356,7 +376,7 @@ sub _norm_weight {
 
 =head1 SEE ALSO
 
-L<PDF::API2::Layout::Simple>, L<PDF::API2>, L<PDF::Builder>, L<Font::TTF>.
+L<Text::Layout>, L<Text::Layout::FontDescriptor>.
 
 =head1 AUTHOR
 
@@ -364,26 +384,21 @@ Johan Vromans, C<< <JV at CPAN dot org> >>
 
 =head1 SUPPORT
 
-Development of this module takes place on GitHub:
-L<https://github.com/sciurius/xxx>.
+This module is part of <Text::Layout>.
+
+Development takes place on GitHub:
+L<https://github.com/sciurius/perl-Text-Layout>.
 
 You can find documentation for this module with the perldoc command.
 
-  perldoc PDF::API2::Layout::Simple
+  perldoc Text::Layout::FontConfig
 
 Please report any bugs or feature requests using the issue tracker on
 GitHub.
 
 =head1 LICENSE
 
-Copyright (C) 2019, Johan Vromans
-
-This module is free software. You can redistribute it and/or
-modify it under the terms of the Artistic License 2.0.
-
-This program is distributed in the hope that it will be useful,
-but without any warranty; without even the implied warranty of
-merchantability or fitness for a particular purpose.
+See L<Text::Layout>.
 
 =cut
 

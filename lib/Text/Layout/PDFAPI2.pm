@@ -33,7 +33,7 @@ sub render {
     $text->save;
     foreach my $fragment ( @{ $ctx->{_content} } ) {
 	next unless length($fragment->{text});
-	my $f = $fragment->{font}->{font} || $ctx->{_currentfont}->{font};
+	my $f = $fragment->{font}->get_font($ctx) || $ctx->{_currentfont}->{font};
 	$text->font( $f, $fragment->{size} || $ctx->{_currentsize} );
 	$text->strokecolor( $fragment->{color} );
 	$text->fillcolor( $fragment->{color} );
@@ -59,10 +59,11 @@ sub bbox {
     my ( $ctx ) = @_;
     my ( $x, $w, $d, $a ) = (0) x 4;
     foreach ( @{ $ctx->{_content} } ) {
-	$w += $_->{font}->{font}->width( $_->{text} ) * $_->{size};
-	my $d0 = $_->{font}->{font}->descender * $_->{size} - $_->{base}*1024;
+	my $font = $_->{font}->get_font($ctx);
+	$w += $font->width( $_->{text} ) * $_->{size};
+	my $d0 = $font->descender * $_->{size} - $_->{base}*1024;
 	$d = $d0 if $d0 < $d;
-	my $a0 = $_->{font}->{font}->ascender * $_->{size} - $_->{base}*1024;
+	my $a0 = $font->ascender * $_->{size} - $_->{base}*1024;
 	$a = $a0 if $a0 > $a;
     }
     $d /= 1024;
@@ -81,27 +82,24 @@ sub bbox {
 }
 
 sub load_font {
-    my ( $ctx, $description ) = @_;
-    my $font;
-    if ( !$description->{font} && ( $font = $description->{load} ) ) {
-	my $ff;
-	if ( $font =~ /\.[ot]tf$/ ) {
-	    eval {
-		$ff = $ctx->{_context}->ttfont( $font, -dokern => 1 );
-	    };
-	}
-	else {
-	    eval {
-		$ff = $ctx->{_context}->corefont( $font, -dokern => 1 );
-	    };
-	}
-
-	croak( "Cannot load font: ", $font, "\n", $@ ) unless $ff;
-	# warn("Loaded font: $description->{load}\n");
-	$description->{font} = $ff;
-	$description->{cache}->{font} = $ff;
+    my ( $self, $ctx, $font ) = @_;
+    my $ff;
+    if ( $font =~ /\.[ot]tf$/ ) {
+	eval {
+	    $ff = $ctx->{_context}->ttfont( $font, -dokern => 1 );
+	};
     }
-    return $description;
+    else {
+	eval {
+	    $ff = $ctx->{_context}->corefont( $font, -dokern => 1 );
+	};
+    }
+
+    croak( "Cannot load font: ", $font, "\n", $@ ) unless $ff;
+    # warn("Loaded font: $description->{load}\n");
+    $self->{font} = $ff;
+    $self->{cache}->{font} = $ff;
+    return $ff;
 }
 
 1;

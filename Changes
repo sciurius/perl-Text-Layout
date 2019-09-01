@@ -3,6 +3,9 @@ Revision history for Text::Layout
 0.02
 
 	Fix return values of get*extent and get*size.
+	Split off FontDescriptor from FontConfig.
+	Added tests for PDF::API2 backend.
+	Added lots of documentation.
 
 0.01    2019-08-30
 

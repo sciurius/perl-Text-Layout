@@ -153,7 +153,7 @@ sub new {
 	$be = __PACKAGE__."::Pango";
     }
     eval "require $be" or croak($@);
-
+    Text::Layout::FontConfig->set_loader( $be->can("load_font") );
     bless { _be      => $be,
 	    _context => $be->init(@data),
 	    _fonts   => {},
@@ -368,7 +368,6 @@ sub set_markup {
 		# <span face="Sans">
 		elsif ( $k =~ /^(face|font_family)$/ ) {
 		    $fcur = Text::Layout::FontConfig->find_font($v);
-		    $self->_load_font($fcur);
 		}
 
 		# <span size=20>
@@ -389,7 +388,6 @@ sub set_markup {
 		    $v = Text::Layout::FontConfig::_norm_style($v);
 		    $fcur = Text::Layout::FontConfig->find_font( $fcur->{family},
 					      $v, $fcur->{weight} );
-		    $self->_load_font($fcur);
 		}
 
 		# <span weight="bold">
@@ -397,7 +395,6 @@ sub set_markup {
 		    $v = Text::Layout::FontConfig::_norm_weight($v);
 		    $fcur = Text::Layout::FontConfig->find_font( $fcur->{family},
 					      $fcur->{style}, $v );
-		    $self->_load_font($fcur);
 		}
 
 		# <span variant="...">
@@ -618,23 +615,14 @@ $description is a Text::Layout::FontConfig object.
 
 sub set_font_description {
     my ( $self, $description ) = @_;
-    my $o = "Text::Layout::FontConfig";
+    my $o = "Text::Layout::FontDescriptor";
     croak("set_font_description requires a $o object (not $description)")
       unless UNIVERSAL::isa( $description, $o );
 
-    $self->_load_font( $description );
-    $self->set_font( $description );
-    $self->set_font_size($description->{size})
+    $self->{_currentfont}  = $description;
+    $self->{_currentsize}  = $description->{size}
       if $description->{size};
-}
-
-sub _load_font {
-    my ( $self, $description ) = @_;
-    my $font;
-    if ( !$description->{font} && ( $font = $description->{load} ) ) {
-	no strict 'refs';
-	"$self->{_be}::load_font"->( $self, $description );
-    }
+    $self->{_currentcolor} = $description->{color} || "black";
 }
 
 =over
@@ -1343,22 +1331,6 @@ NOTE: This is not a Pango API method.
 sub get_font_size {
     my ( $self ) = @_;
     $self->{_currentsize};
-}
-
-=over
-
-=item set_font( $font )
-
-Designates a font for this layout using an internal font.
-
-=back
-
-=cut
-
-sub set_font {
-    my ( $self, $font ) = @_;
-    $self->{_currentfont}  = $font;
-    $self->{_currentcolor} = $font->{color} || "black";
 }
 
 =over

@@ -18,6 +18,9 @@ WriteMakefile(
      'ExtUtils::MakeMaker' => 6.46, # for META_MERGE, LICENSE
      'Test::More' => 0,
  },
+ TEST_REQUIRES  => {
+		    'PDF::API2'  => 2.020,
+		   },
  META_MERGE => {
    resources    => {
      repository => {
@@ -49,6 +52,9 @@ WriteMakefile(
 		       version => $version },
 	 "Text::Layout::FontConfig"
 		  => { file => "lib/Text/FontConfig.pm",
+		       version => $version },
+	 "Text::Layout::FontDescriptor"
+		  => { file => "lib/Text/FontDescriptor.pm",
 		       version => $version },
      },
      no_index => {
