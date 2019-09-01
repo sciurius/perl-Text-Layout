@@ -1,6 +1,6 @@
 Revision history for Text::Layout
 
-0.02
+0.011	2019-09-01
 
 	Fix return values of get*extent and get*size.
 	Split off FontDescriptor from FontConfig.
