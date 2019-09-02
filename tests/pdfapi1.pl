@@ -37,6 +37,18 @@ sub main {
     # Text to render.
     $layout->set_markup( q{Áhe <i><span foreground="red">quick</span> <span size="20"><b>brown</b></span></i> fox} );
 
+    # Left align text.
+    $layout->set_width( 595 * $PANGO_SCALE );
+    $layout->set_alignment("left");
+
+    # Render it.
+    showlayout( $x, $y );
+
+    # Showoff.
+    showbb( $x, $y );
+
+    $y -= 100;
+
     # Right align text.
     $layout->set_width( 595 * $PANGO_SCALE );
     $layout->set_alignment("right");
@@ -56,7 +68,7 @@ sub main {
     $y -= 100;
 
     # Text to render.
-    $layout->set_markup( q{Áhe quick brown fox} );
+#    $layout->set_markup( q{Áhe quick brown fox} );
 
     # Right align text.
     $layout->set_width( 595 * $PANGO_SCALE );
@@ -107,13 +119,13 @@ sub showbb {
     showloc();
 
     # Show baseline.
-    line( $e{x}, $layout->get_baseline/$PANGO_SCALE, $e{x} + $e{width}, 0, $col );
+    line( $e{x}, $layout->get_baseline/$PANGO_SCALE, $e{width}-$e{x}, 0, $col );
 
     # Show bounding box.
     $gfx->linewidth( 0.25 );
     $gfx->strokecolor($col);
     $e{height} = -$e{height};		# PDF coordinates
-    $gfx->rectxy( $e{x}, $e{y}, $e{x}+$e{width}, $e{height} );;
+    $gfx->rectxy( $e{x}, $e{y}, $e{width}, $e{height} );;
     $gfx->stroke;
     $gfx->restore;
 }
