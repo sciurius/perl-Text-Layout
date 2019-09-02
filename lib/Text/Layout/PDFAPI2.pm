@@ -48,6 +48,11 @@ sub render {
 		    $fragment->{color},
 		   ),
 	       ) if 0;
+	if ( $ENV{CHORDPRO_DEBUG_TEXT} ) {
+	    printf STDERR ( "T: %6.2f %6.2f %4.1f \"%s\"\n",
+			    $x, $y-$fragment->{base}-$bl,
+			    $fragment->{size}, $fragment->{text} );
+	}
 	$text->translate( $x, $y-$fragment->{base}-$bl );
 	$text->text( $fragment->{text} );
 	$x += $f->width( $fragment->{text} ) * $fragment->{size};

@@ -151,7 +151,7 @@ sub setup_fonts {
     # $fd->register_corefonts;
 
     # Add font dir and register fonts.
-    $fd->add_fontdirs( $ENV{HOME}."/.fonts" );
+    $fd->add_fontdirs( $ENV{HOME}."/.fonts", "/usr/share/fonts/" );
     $fd->register_font( "ITCGaramond-Light.ttf",       "Garamond"               );
     $fd->register_font( "ITCGaramond-Bold.ttf",        "Garamond", "Bold"       );
     $fd->register_font( "ITCGaramond-LightItalic.ttf", "Garamond", "Italic"     );
