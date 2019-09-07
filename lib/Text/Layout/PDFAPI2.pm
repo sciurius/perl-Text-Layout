@@ -65,14 +65,28 @@ sub bbox {
     my ( $x, $w, $d, $a ) = (0) x 4;
     foreach ( @{ $ctx->{_content} } ) {
 	my $font = $_->{font}->get_font($ctx);
-	$w += $font->width( $_->{text} ) * $_->{size};
-	my $d0 = $font->descender * $_->{size} - $_->{base}*1024;
+	my $upem = 1000;	# as delivered by PDF::API2
+	my $size = $_->{size};
+	my $base = $_->{base};
+	$w += $font->width( $_->{text} ) * $size;
+	my ( $d0, $a0 );
+	if ( 1 ) {
+	    # Use descender/ascender.
+	    # Quite accurate, although there are some fonts that do
+	    # not include accents on capitals in the ascender.
+	    $d0 = $font->descender * $size / $upem - $base;
+	    $a0 = $font->ascender * $size / $upem - $base;
+	}
+	else {
+	    # Use bounding box.
+	    # Some (modern) fonts include spacing in the bb.
+	    my @bb = map { $_ * $size / $upem } $font->fontbbox;
+	    $d0 = $bb[1] - $base;
+	    $a0 = $bb[3] - $base;
+	}
 	$d = $d0 if $d0 < $d;
-	my $a0 = $font->ascender * $_->{size} - $_->{base}*1024;
 	$a = $a0 if $a0 > $a;
     }
-    $d /= 1024;
-    $a /= 1024;
 
     if ( $ctx->{_width} && $ctx->{_alignment} && $w < $ctx->{_width} ) {
 	if ( $ctx->{_alignment} eq "right" ) {

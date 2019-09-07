@@ -279,6 +279,8 @@ sub get_text {
 
 Returns the number of characters in the text of this layout.
 
+Basically the same as length of get_text().
+
 Returns undef if no text has been set.
 
 =back
