@@ -385,6 +385,50 @@ sub parse {
 	   };
 }
 
+=over
+
+=item from_filename( $filename )
+
+Returns a font descriptor from a filename. Tries to infer Pango data
+from the name.
+
+=back
+
+=cut
+
+use File::Basename;
+
+sub from_filename {
+    shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
+    my ( $file ) = @_;
+    my $b;
+    ( $b, undef, undef ) = fileparse( $file, qr/\.\w+/ );
+    my ( $family, $style, $weight ) = ( $b, "normal", "normal" );
+
+    if ( lc($b) =~ m/^
+		 ( .*? )
+		 -?
+		 (roman?|normal|regular)?
+		 (light|book|bold)?
+		 (italic|ital|oblique|obli)?
+		 $/ix ) {
+	$family = $1       if $1;
+	$style  = "italic" if $4;
+	$weight = "bold"   if $3 && $3 =~ /^(bold)$/;
+    }
+
+    my $fd = Text::Layout::FontDescriptor->new
+      ( loader_data => $file,
+	loader => $loader,
+	family => $family,
+	style  => $style,
+	weight => $weight );
+
+    $fonts{$family}{$style}{$weight} //= $fd;
+
+    return $fd;
+}
+
 ################ Helper Routines ################
 
 sub set_loader {
@@ -423,7 +467,6 @@ sub _norm_weight {
 my $fallback;
 
 sub _fallback {
-
     unless ( defined $fallback ) {
 	$fallback = '';
 	foreach ( split( /:/, $ENV{PATH} ) ) {
@@ -455,7 +498,7 @@ sub _fallback {
 
     close($fd);
     register_font( $res, $family, $style, $weight ) if $res;
-#    warn("Fallback $pattern -> $res\n");
+    warn("Fallback $pattern -> $res\n");
     return $res;
 }
 
@@ -487,4 +530,23 @@ See L<Text::Layout>.
 
 =cut
 
+sub _dump {
+    foreach my $family ( sort keys %fonts ) {
+	foreach my $style ( qw( normal italic ) ) {
+	    foreach my $weight ( qw( normal bold ) ) {
+		my $f = $fonts{$family}{$style}{$weight};
+		next unless $f;
+		printf STDERR ( "%-13s %s%s%s %s\n",
+				$family,
+				$style eq 'normal' ? "-" : "i",
+				$weight eq 'normal' ? "-" : "b",
+				$f->{font} ? "+" : " ",
+				$f->{loader_data},
+			      );
+	    }
+	}
+    }
+}
+
+END { _dump }
 1;
