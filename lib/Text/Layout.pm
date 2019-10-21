@@ -31,6 +31,9 @@ description.
 
 Example, using PDF::API2 integration:
 
+    use PDF::API2;		# or PDF::Builder
+    use Text::Layout;
+
     # Create a PDF document.
     my $pdf = PDF::API2->new;	# or PDF::Builder->new
     $pdf->mediabox( 595, 842 );	# A4, PDF units
@@ -50,7 +53,8 @@ Example, using PDF::API2 integration:
     $layout->set_alignment("center");
 
     # Render it.
-    $layout->show( $x, $y, $ctx );
+    $layout->show( 0, 600, $ctx );
+    $pdf->saveas("out.pdf");
 
 All PDF::API2 graphic and text methods can still be used, they won't
 interfere with the layout methods.
@@ -140,11 +144,8 @@ sub new {
 	shift;
 	$be = shift;
     }
-    if ( $INC{"PDF/API2.pm"} ) {
+    if ( $INC{"PDF/API2.pm"} || $INC{"PDF/Builder.pm"} ) {
 	$be = __PACKAGE__."::PDFAPI2";
-    }
-    elsif ( $INC{"PDF/Builder.pm"} ) {
-	$be = __PACKAGE__."::PDFBuilder";
     }
     elsif ( $INC{"Cairo.pm"} ) {
 	$be = __PACKAGE__."::Cairo";
@@ -424,7 +425,6 @@ sub set_markup {
 		# <span rise=324>
 		elsif ( $k eq "rise" ) {
 		    $base += $v / 1024 * $fsiz;
-		    warn("base=$base\n");
 		}
 
 		# <span strikethrough=false>

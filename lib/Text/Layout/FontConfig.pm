@@ -39,6 +39,7 @@ with new() will always return the same object.
 my %fonts;
 my @dirs;
 my $loader;
+my $debug = 0;
 
 =head2 METHODS
 
@@ -498,7 +499,7 @@ sub _fallback {
 
     close($fd);
     register_font( $res, $family, $style, $weight ) if $res;
-    warn("Fallback $pattern -> $res\n");
+    warn("Lookup $pattern -> $res\n") if $debug;
     return $res;
 }
 
@@ -548,5 +549,6 @@ sub _dump {
     }
 }
 
-END { _dump }
+# END { _dump }
+
 1;

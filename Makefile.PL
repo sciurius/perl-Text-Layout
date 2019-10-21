@@ -1,3 +1,5 @@
+#! perl
+
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
@@ -19,7 +21,7 @@ WriteMakefile(
      'Test::More' => 0,
  },
  TEST_REQUIRES  => {
-		    'PDF::API2'  => 2.020,
+		    'PDF::API2'  => 2.036,
 		   },
  META_MERGE => {
    resources    => {
@@ -39,28 +41,29 @@ WriteMakefile(
 		  => { file => "lib/Text/Layout.pm",
 		       version => $version },
 	 "Text::Layout::Pango"
-		  => { file => "lib/Text/Pango.pm",
+		  => { file => "lib/Text/Layout/Pango.pm",
 		       version => $version },
 	 "Text::Layout::Cairo"
-		  => { file => "lib/Text/Cairo.pm",
+		  => { file => "lib/Text/Layout/Cairo.pm",
 		       version => $version },
 	 "Text::Layout::PDFAPI2"
-		  => { file => "lib/Text/PDFAPI2.pm",
+		  => { file => "lib/Text/Layout/PDFAPI2.pm",
 		       version => $version },
 	 "Text::Layout::Markdown"
-		  => { file => "lib/Text/Markdown.pm",
+		  => { file => "lib/Text/Layout/Markdown.pm",
 		       version => $version },
 	 "Text::Layout::FontConfig"
-		  => { file => "lib/Text/FontConfig.pm",
+		  => { file => "lib/Text/Layout/FontConfig.pm",
 		       version => $version },
 	 "Text::Layout::FontDescriptor"
-		  => { file => "lib/Text/FontDescriptor.pm",
+		  => { file => "lib/Text/Layout/FontDescriptor.pm",
 		       version => $version },
      },
+
      no_index => {
-         file => [
-	    "lib/App/Music/ChordPro/Version.pm",
-	 ],
+#         file => [
+#	    "lib/App/Music/ChordPro/Version.pm",
+#	 ],
          directory => [
 	    "tests",
 	 ],
