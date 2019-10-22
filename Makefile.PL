@@ -40,32 +40,15 @@ WriteMakefile(
 	 "Text::Layout"
 		  => { file => "lib/Text/Layout.pm",
 		       version => $version },
-	 "Text::Layout::Pango"
-		  => { file => "lib/Text/Layout/Pango.pm",
-		       version => $version },
-	 "Text::Layout::Cairo"
-		  => { file => "lib/Text/Layout/Cairo.pm",
-		       version => $version },
-	 "Text::Layout::PDFAPI2"
-		  => { file => "lib/Text/Layout/PDFAPI2.pm",
-		       version => $version },
-	 "Text::Layout::Markdown"
-		  => { file => "lib/Text/Layout/Markdown.pm",
-		       version => $version },
-	 "Text::Layout::FontConfig"
-		  => { file => "lib/Text/Layout/FontConfig.pm",
-		       version => $version },
-	 "Text::Layout::FontDescriptor"
-		  => { file => "lib/Text/Layout/FontDescriptor.pm",
-		       version => $version },
      },
 
      no_index => {
 #         file => [
-#	    "lib/App/Music/ChordPro/Version.pm",
+#	    "lib/Text/Layout/Version.pm",
 #	 ],
          directory => [
 	    "tests",
+	    "lib/Text/Layout",
 	 ],
      },
  }
