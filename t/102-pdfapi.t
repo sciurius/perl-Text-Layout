@@ -38,31 +38,30 @@ my $fd = $fc->from_string("Serif 20");
 # Apply the font to the layout.
 $layout->set_font_description($fd);
 is( $layout->get_font_description->to_string, "Serif 20", "Font desc");
-
 # Put some text in the layout.
 $layout->set_markup("The quick brows fox");
 
 # Get baseline. Since we're working top-left this is a negative value.
 my $v = $layout->get_baseline;
-ok( $v > -13.34 && $v < -13.33, "baseline $v" );
+ok( $v > -13.67 && $v < -13.65, "baseline $v" );
 $v = $layout->get_iter->get_baseline;
-ok( $v > -13.34 && $v < -13.33, "baseline $v" );
+ok( $v > -13.67 && $v < -13.65, "baseline $v" );
 
 # Get width/height.
 my @a = $layout->get_pixel_size;
-ok( $a[0] > 166.07 && $a[0] < 166.09, "pixel_size width"  );
-ok( $a[1] >  17.57 && $a[1] <  17.58, "pixel_size height" );
+ok( $a[0] > 166.07 && $a[0] < 166.09, "pixel_size width $a[0]"  );
+ok( $a[1] >  17.99 && $a[1] <  18.01, "pixel_size height $a[1]" );
 my $a = $layout->get_pixel_size;
-ok( $a->{width}  > 166.07 && $a->{width}  < 166.09, "pixel_size width" );
-ok( $a->{height} >  17.57 && $a->{height} <  17.58, "pixel_size height" );
+ok( $a->{width}  > 166.07 && $a->{width}  < 166.09, "pixel_size width $a->{width}" );
+ok( $a->{height} >  17.99 && $a->{height} <  18.01, "pixel_size height $a->{height}" );
 
 # get_size should return the same, since we're not using Pango units.
 @a = $layout->get_size;
 ok( $a[0] > 166.07 && $a[0] < 166.09, "size width" );
-ok( $a[1] >  17.57 && $a[1] <  17.58, "size height" );
+ok( $a[1] >  17.99 && $a[1] <  18.01, "size height" );
 $a = $layout->get_size;
 ok( $a->{width}  > 166.07 && $a->{width}  < 166.09, "size width" );
-ok( $a->{height} >  17.57 && $a->{height} <  17.58, "size height" );
+ok( $a->{height} >  17.99 && $a->{height} <  18.01, "size height" );
 
 # Get extents
 my @ink = qw( ink layout );
@@ -75,7 +74,7 @@ for ( 0, 1 ) {
 	"pixel_extents @{[$ink[$_]]} y @{[$a->{y}]}" );
     ok( $a->{width}  > 166.07 && $a->{width}  < 166.09,
 	"pixel_extents @{[$ink[$_]]} width @{[$a->{width}]}" );
-    ok( $a->{height} >  17.57 && $a->{height} <  17.58,
+    ok( $a->{height} >  17.99 && $a->{height} <  18.01,
 	"pixel_extents @{[$ink[$_]]} height @{[$a->{height}]}" );
 }
 # Same, using Pango units (but we do not).
@@ -88,7 +87,7 @@ for ( 0, 1 ) {
 	"extents @{[$ink[$_]]} y @{[$a->{y}]}" );
     ok( $a->{width}  > 166.07 && $a->{width}  < 166.09,
 	"extents @{[$ink[$_]]} width @{[$a->{width}]}" );
-    ok( $a->{height} >  17.57 && $a->{height} <  17.58,
+    ok( $a->{height} >  17.99 && $a->{height} <  18.01,
 	"extents @{[$ink[$_]]} height @{[$a->{height}]}" );
 }
 
