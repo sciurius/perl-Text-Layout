@@ -14,4 +14,5 @@ t/00-load.t
 t/100-pdfapi.t
 t/102-pdfapi.t
 tests/pdfapi1.pl
+tests/pdfapi2.pl
 tests/md1.pl

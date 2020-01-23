@@ -29,6 +29,9 @@ See L<https://developer.gnome.org/pango/stable/pango-Layout-Objects.html>.
 The package uses Text::Layout::FontConfig to organize fonts by
 description.
 
+If module HarfBuzz::Shaper is installed, Text::Layout can use it for
+text shaping.
+
 Example, using PDF::API2 integration:
 
     use PDF::API2;		# or PDF::Builder
@@ -1453,10 +1456,10 @@ sub nyi {
 Description of the Pango Markup Language:
 L<https://developer.gnome.org/pygtk/stable/pango-markup-language.html>.
 
-Documentation  of the Pango Layout class:
+Documentation of the Pango Layout class:
 L<https://developer.gnome.org/pango/stable/pango-Layout-Objects.html>.
 
-L<PDF::API2>, L<PDF::Builder>, L<Font::TTF>.
+L<PDF::API2>, L<PDF::Builder>, L<HarfBuzz::Shaper>, L<Font::TTF>.
 
 =head1 AUTHOR
 

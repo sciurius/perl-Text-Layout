@@ -19,6 +19,9 @@ Backends are included for:
 The package uses Text::Layout::FontConfig (included) to organize fonts
 by description.
 
+If module HarfBuzz::Shaper is installed, Text::Layout can use it for
+text shaping.
+
 Example:
 
     # Create a PDF document.
