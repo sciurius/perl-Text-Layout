@@ -104,9 +104,7 @@ sub get_font {
 
 =item get_weight
 
-=item get_shaping
-
-Accessors to the font family, style, weight and shaping.
+Accessors to the font family, style, and weight.
 
 Readonly.
 
@@ -129,16 +127,6 @@ sub get_weight {
     $self->{weight};
 }
 
-sub get_size {
-    my ( $self ) = @_;
-    $self->{size};
-}
-
-sub get_shaping {
-    my ( $self ) = @_;
-    $self->{shaping};
-}
-
 =over
 
 =item set_size
@@ -156,9 +144,16 @@ sub set_size {
     $self->{size} = $size;
 }
 
+sub get_size {
+    my ( $self ) = @_;
+    $self->{size};
+}
+
 =over
 
 =item set_shaping
+
+=item get_shaping
 
 Sets/gets the shaping property of the font.
 
@@ -169,6 +164,33 @@ Sets/gets the shaping property of the font.
 sub set_shaping {
     my ( $self, $sh ) = @_;
     $self->{shaping} = $sh // 1;
+}
+
+sub get_shaping {
+    my ( $self ) = @_;
+    $self->{shaping};
+}
+
+=over
+
+=item set_interline
+
+=item get_interline
+
+Sets/gets the interline property of the font.
+
+=back
+
+=cut
+
+sub set_interline {
+    my ( $self, $sh ) = @_;
+    $self->{interline} = $sh // 1;
+}
+
+sub get_interline {
+    my ( $self ) = @_;
+    $self->{interline};
 }
 
 =over

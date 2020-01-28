@@ -101,7 +101,7 @@ For convenience, style combinations like "bolditalic" are allowed.
 
 sub register_font {
     shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
-    my ( $font, $family, $style, $weight ) = @_;
+    my ( $font, $family, $style, $weight, $opts ) = @_;
 
     if ( $style && !$weight && $style =~ s/^bold//i ) {
 	$weight = "bold";
@@ -132,6 +132,10 @@ sub register_font {
     foreach ( split(/\s*,\s*/, $family) ) {
 	$fonts{lc $_}->{$style}->{$weight}->{loader} = $loader;
 	$fonts{lc $_}->{$style}->{$weight}->{loader_data} = $ff;
+	next unless $opts;
+	while ( my($k,$v) = each %$opts ) {
+	    $fonts{lc $_}->{$style}->{$weight}->{$k} = $v;
+	}
     }
 
 }
@@ -277,7 +281,10 @@ sub find_font {
 	      ( font   => $ff,
 		family => $family,
 		style  => $style,
-		weight => $weight );
+		weight => $weight,
+		shaping => $fonts{$family}->{$style}->{$weight}->{shaping},
+		interline => $fonts{$family}->{$style}->{$weight}->{interline},
+	      );
 	}
 	elsif ( $ff = $fonts{$family}->{$style}->{$weight}->{loader_data} ) {
 	    return Text::Layout::FontDescriptor->new
@@ -286,7 +293,10 @@ sub find_font {
 		cache  => $fonts{$family}->{$style}->{$weight},
 		family => $family,
 		style  => $style,
-		weight => $weight );
+		weight => $weight,
+		shaping => $fonts{$family}->{$style}->{$weight}->{shaping},
+		interline => $fonts{$family}->{$style}->{$weight}->{interline},
+	     );
 	}
 	else {
 	    return;
@@ -537,10 +547,12 @@ sub _dump {
 	    foreach my $weight ( qw( normal bold ) ) {
 		my $f = $fonts{$family}{$style}{$weight};
 		next unless $f;
-		printf STDERR ( "%-13s %s%s%s %s\n",
+		printf STDERR ( "%-13s %s%s%s%s%s %s\n",
 				$family,
 				$style eq 'normal' ? "-" : "i",
 				$weight eq 'normal' ? "-" : "b",
+				$f->{shaping} ? "s" : "-",
+				$f->{interline} ? "l" : "-",
 				$f->{font} ? "+" : " ",
 				$f->{loader_data},
 			      );
