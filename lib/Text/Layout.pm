@@ -26,8 +26,8 @@ behaviour as their Pango counterparts.
 
 See L<https://developer.gnome.org/pango/stable/pango-Layout-Objects.html>.
 
-The package uses Text::Layout::FontConfig to organize fonts by
-description.
+The package uses Text::Layout::FontConfig (included) to organize fonts
+by description.
 
 If module HarfBuzz::Shaper is installed, Text::Layout can use it for
 text shaping.
@@ -62,19 +62,19 @@ Example, using PDF::API2 integration:
 All PDF::API2 graphic and text methods can still be used, they won't
 interfere with the layout methods.
 
-=head1 NOTES FOR PDF::API2 USERS
+=head1 NOTES FOR PDF::API2/Builder USERS
 
 =head2 Baselines
 
-PDF::API2 renders texts using the font baseline as origin.
+PDF::API2 and PDF::Builder render texts using the font baseline as origin.
 
 This module typesets text in an area of possibly limited width and
 height. The origin is the top left of this area. Currently this area
 contains only a single line of text. This will change in the future
 when line breaking and paragraph formatting is implemented.
 
-PDF::API2 coordinates have origin bottom left. This module produces
-information with respect to top left coordinates.
+PDF::API2 and PDF::Builder coordinates have origin bottom left. This
+module produces information with respect to top left coordinates.
 
 =head1 IMPORTANT NOTES FOR PANGO USERS
 
