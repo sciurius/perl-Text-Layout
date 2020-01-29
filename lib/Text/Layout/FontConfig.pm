@@ -101,7 +101,9 @@ For convenience, style combinations like "bolditalic" are allowed.
 
 sub register_font {
     shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
-    my ( $font, $family, $style, $weight, $opts ) = @_;
+    my $atts;
+    $atts = pop(@_) if UNIVERSAL::isa( $_[-1], 'HASH' );
+    my ( $font, $family, $style, $weight ) = @_;
 
     if ( $style && !$weight && $style =~ s/^bold//i ) {
 	$weight = "bold";
@@ -132,8 +134,8 @@ sub register_font {
     foreach ( split(/\s*,\s*/, $family) ) {
 	$fonts{lc $_}->{$style}->{$weight}->{loader} = $loader;
 	$fonts{lc $_}->{$style}->{$weight}->{loader_data} = $ff;
-	next unless $opts;
-	while ( my($k,$v) = each %$opts ) {
+	next unless $atts;
+	while ( my($k,$v) = each %$atts ) {
 	    $fonts{lc $_}->{$style}->{$weight}->{$k} = $v;
 	}
     }
@@ -269,7 +271,9 @@ On Linux, fallback using fontconfig.
 
 sub find_font {
     shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
-    my ( $family, $style, $weight, $atts ) = @_;
+    my $atts;
+    $atts = pop(@_) if UNIVERSAL::isa( $_[-1], 'HASH' );
+    my ( $family, $style, $weight ) = @_;
 
     my $try = sub {
       if ( $fonts{$family}

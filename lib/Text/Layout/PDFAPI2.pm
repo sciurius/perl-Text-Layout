@@ -141,7 +141,7 @@ sub bbox {
 	}
 
 	my ( $d0, $a0 );
-	if ( $f->get_interline ) {
+	if ( !$f->get_interline ) {
 	    # Use descender/ascender.
 	    # Quite accurate, although there are some fonts that do
 	    # not include accents on capitals in the ascender.

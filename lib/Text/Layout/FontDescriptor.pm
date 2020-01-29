@@ -149,17 +149,7 @@ sub get_size {
     $self->{size};
 }
 
-=over
-
-=item set_shaping
-
-=item get_shaping
-
-Sets/gets the shaping property of the font.
-
-=back
-
-=cut
+# Not documented -- internal use only.
 
 sub set_shaping {
     my ( $self, $sh ) = @_;
@@ -171,17 +161,7 @@ sub get_shaping {
     $self->{shaping};
 }
 
-=over
-
-=item set_interline
-
-=item get_interline
-
-Sets/gets the interline property of the font.
-
-=back
-
-=cut
+# Not documented -- internal use only.
 
 sub set_interline {
     my ( $self, $sh ) = @_;
