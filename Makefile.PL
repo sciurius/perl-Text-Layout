@@ -41,6 +41,12 @@ WriteMakefile(
 	 "Text::Layout"
 		  => { file => "lib/Text/Layout.pm",
 		       version => $version },
+	 "Text::Layout::FontConfig"
+		  => { file => "lib/Text/Layout/FontConfig.pm",
+		       version => $version },
+	 "Text::Layout::FontDescriptor"
+		  => { file => "lib/Text/Layout/FontDescriptor.pm",
+		       version => $version },
      },
 
      no_index => {
