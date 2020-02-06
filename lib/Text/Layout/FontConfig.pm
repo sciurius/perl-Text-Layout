@@ -412,6 +412,7 @@ sub parse {
 	}
 	else {
 	    carp("Unknown font property: $t");
+	    $family .= " " . $_;
 	}
     }
 
