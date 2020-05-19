@@ -2,6 +2,10 @@ Revision history for Text::Layout
 
 0.000
 
+	Dropped testing with PDF::Builder. Text::Layout will continue
+	to work with PDF::Builder to the extent that it is compatible
+	with PDF::API2.
+
 0.018.2	2020-05-09
 
 	Avoid testing PDF::Builder if it is of an incompatible
