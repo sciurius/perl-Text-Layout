@@ -4,7 +4,9 @@ Revision history for Text::Layout
 
 	Add support for C<< <span font_desc="..."> >>. See
 	tests/pdfapi3.pl for an example how to use this to embed RTL
-	texts.
+	texts. Note, however, that this currently relies on the native
+	harfbuzz library to correctly determine ('guess') the
+	characteristics of the text.
 
 0.018.3	2020-05-19
 

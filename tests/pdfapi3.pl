@@ -41,6 +41,10 @@ sub main {
 
     # Typeset in three parts. Note that parts 1 and 3 will be ltr,
     # and part 2 will be rtl.
+    # Note, however, that this currently relies on the native
+    # harfbuzz library to correctly determine ('guess') the
+    # characteristics of the text.
+
     $layout->set_markup("abc");
     showlayout( $x, $y );
     showbb( $x, $y );
