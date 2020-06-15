@@ -2,6 +2,10 @@ Revision history for Text::Layout
 
 0.000
 
+	Add support for C<< <span font_desc="..."> >>. See
+	tests/pdfapi3.pl for an example how to use this to embed RTL
+	texts.
+
 0.018.3	2020-05-19
 
 	Dropped testing with PDF::Builder. Text::Layout will continue

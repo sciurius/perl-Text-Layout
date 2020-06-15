@@ -314,6 +314,7 @@ Implementation note: Although all markup is parsed, not all is implemented.
 
 =cut
 
+use Text::ParseWords;
 use constant STEP => 0.8;	# TODO: Optimal value?
 
 my %magstep =
@@ -356,19 +357,21 @@ sub set_markup {
     my $span;
     $span = sub {
 	my ( $v ) = @_;
-	# Split the span attributes.
-	foreach my $k ( split(' ',$v) ) {
+	# Split the span attributes. Note that shellwords is so kind to
+	# split 'font="xx yy"' as a single word 'font=xx yy'.
+	foreach my $k ( shellwords($v) ) {
 
 	    # key=value
 	    if ( $k =~ /^([-\w]+)=(.+)$/ ) {
 		my ( $k, $v ) = ( $1, $2 );
 
-		# Strip quotes.
-		$v =~ s/^(["'])(.*)\1$/$2/;
+		# Strip quotes. Shouldn't be necessary now we use shellwords.
+		# $v =~ s/^(["'])(.*)\1$/$2/;
 
 		# <span font_desc="Sans 20">
 		if ( $k =~ /^(font_desc)$/ ) {
-		    # NYI.
+		    $fcur = Text::Layout::FontConfig->from_string($v);
+		    $fsiz = $fcur->get_size if $fcur->get_size;
 		}
 
 		# <span face="Sans">
