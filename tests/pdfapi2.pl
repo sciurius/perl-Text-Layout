@@ -9,6 +9,8 @@ use PDF::API2;
 use lib "../lib";
 use Text::Layout;
 use Text::Layout::FontConfig;
+eval { require HarfBuzz::Shaper }
+  or warn("HarfBuzz::Shaper not found. Expect incorrect results!\n");
 
 # Create document and graphics environment.
 my $pdf = PDF::API2->new();

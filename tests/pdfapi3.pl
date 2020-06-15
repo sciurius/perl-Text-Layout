@@ -7,9 +7,10 @@ use utf8;
 use PDF::API2;
 
 use lib "../lib";
-use blib "../../HarfBuzz-Shaper/blib";
 use Text::Layout;
 use Text::Layout::FontConfig;
+eval { require HarfBuzz::Shaper }
+  or warn("HarfBuzz::Shaper not found. Expect incorrect results!\n");
 
 # Create document and graphics environment.
 my $pdf = PDF::API2->new();
@@ -157,7 +158,7 @@ sub setup_fonts {
 
     # Add Amiri (Arabic). Requires shaping.
     $fd->register_font( "amiri/amiri-regular.ttf",
-			"Amiri", "Serif", "", { shaping => 1 } );
+			"Amiri", "", "", { shaping => 1 } );
 
     my $o = { interline => 1 };
     $fd->register_font( "Helvetica", "Sanss", "", "", $o );
