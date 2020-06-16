@@ -144,10 +144,10 @@ sub new {
     my $be = __PACKAGE__."::Markdown";
 
     if ( @data >= 2 && $data[0] eq "backend") {
-	shift;
-	$be = shift;
+	shift(@data);
+	$be = shift(@data);
     }
-    if ( $INC{"PDF/API2.pm"} || $INC{"PDF/Builder.pm"} ) {
+    elsif ( $INC{"PDF/API2.pm"} || $INC{"PDF/Builder.pm"} ) {
 	$be = __PACKAGE__."::PDFAPI2";
     }
     elsif ( $INC{"Cairo.pm"} ) {
