@@ -24,8 +24,8 @@ my $page = $pdf->page;
 my $text = $page->text;
 
 # Create a layout.
-require Text::Layout;
-my $layout = Text::Layout->new($pdf);
+require Text::Layout::PDFAPI2;
+my $layout = Text::Layout::PDFAPI2->new($pdf);
 
 # Create a FontConfig.
 require Text::Layout::FontConfig;

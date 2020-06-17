@@ -8,6 +8,8 @@ Revision history for Text::Layout
 	harfbuzz library to correctly determine ('guess') the
 	characteristics of the text.
 
+	Eliminated backend loading in favour of derived classes.
+
 0.018.3	2020-05-19
 
 	Dropped testing with PDF::Builder. Text::Layout will continue

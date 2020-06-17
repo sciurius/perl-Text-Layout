@@ -17,7 +17,6 @@ my $pdf = PDF::API2->new();
 $pdf->mediabox( 595, 842 );	# A4
 
 # Set up page and get the text context.
-# Markup::Simple *only* uses the text context, and only for rendering.
 my $page = $pdf->page;
 my $text = $page->text;
 
@@ -47,17 +46,14 @@ sub main {
 
     $layout->set_markup("abc");
     showlayout( $x, $y );
-    showbb( $x, $y );
     $x += ($layout->get_size)[0]/$PANGO_SCALE;
 
     $layout->set_markup( q{برنامج أهلا بالعالم} );
     showlayout( $x, $y );
-    showbb( $x, $y );
     $x += ($layout->get_size)[0]/$PANGO_SCALE;
 
     $layout->set_markup("xyz");
     showlayout( $x, $y );
-    showbb( $x, $y );
 
     # Typeset as one string, using <span>.
     $x = 0;
@@ -68,7 +64,6 @@ sub main {
 			 "<span font_desc='Amiri'>".q{برنامج أهلا بالعالم}."</span>".
 			 "def" );
     showlayout( $x, $y );
-    showbb( $x, $y );
 
     # Ship out.
     $pdf->saveas("pdfapi3.pdf");
@@ -81,57 +76,8 @@ my $gfx;
 sub showlayout {
     my ( $x, $y ) = @_;
     $layout->show( $x, $y, $text);
-}
-
-sub showloc {
-    my ( $x, $y, $d, $col ) = @_;
-    $x ||= 0; $y ||= 0; $d ||= 50; $col ||= "blue";
     $gfx //= $page->gfx;
-
-    line( $x-$d, $y, 2*$d, 0, $col );
-    line( $x, $y-$d, 0, 2*$d, $col );
-}
-
-sub showbb {
-    my ( $x, $y, $col ) = @_;
-    $col ||= "magenta";
-    $gfx //= $page->gfx;
-
-    # Bounding box, top-left coordinates.
-    my %e = %{($layout->get_pixel_extents)[1]};
-    # printf( "EXT: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
-
-    # NOTE: Some fonts include natural spacing in the bounding box.
-    # NOTE: Some fonts exclude accents on capitals from the bounding box.
-
-    $gfx->save;
-    $gfx->translate( $x, $y );
-    showloc();
-
-    # Show baseline.
-    line( $e{x}, $layout->get_baseline/$PANGO_SCALE, $e{width}-$e{x}, 0, $col );
-
-    # Show bounding box.
-    $gfx->linewidth( 0.25 );
-    $gfx->strokecolor($col);
-    $e{height} = -$e{height};		# PDF coordinates
-    $gfx->rectxy( $e{x}, $e{y}, $e{width}, $e{height} );;
-    $gfx->stroke;
-    $gfx->restore;
-}
-
-sub line {
-    my ( $x, $y, $w, $h, $col ) = @_;
-    $col ||= "black";
-    $gfx //= $page->gfx;
-
-    $gfx->save;
-    $gfx->move( $x, $y );
-    $gfx->line( $x+$w, $y+$h );
-    $gfx->linewidth(0.5);
-    $gfx->strokecolor($col);
-    $gfx->stroke;
-    $gfx->restore;
+    $layout->showbb($gfx);
 }
 
 sub setup_fonts {
