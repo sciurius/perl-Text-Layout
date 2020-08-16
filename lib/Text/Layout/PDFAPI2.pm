@@ -187,6 +187,9 @@ sub bbox {
 #### API
 sub load_font {
     my ( $self, $font ) = @_;
+    return $self->{cache}->{$font}
+      if $self->{cache}->{$font};
+
     my $ff;
     if ( $font =~ /\.[ot]tf$/ ) {
 	eval {
@@ -200,9 +203,9 @@ sub load_font {
     }
 
     croak( "Cannot load font: ", $font, "\n", $@ ) unless $ff;
-    # warn("Loaded font: $description->{load}\n");
+    # warn("Loaded font: $font\n");
     $self->{font} = $ff;
-    $self->{cache}->{font} = $ff;
+    $self->{cache}->{$font} = $ff;
     return $ff;
 }
 

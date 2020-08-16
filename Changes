@@ -10,6 +10,8 @@ Revision history for Text::Layout
 
 	Eliminated backend loading in favour of derived classes.
 
+	Enable font caching for PDF::API2.
+
 0.018.3	2020-05-19
 
 	Dropped testing with PDF::Builder. Text::Layout will continue
