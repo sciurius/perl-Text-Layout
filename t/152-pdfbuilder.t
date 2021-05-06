@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 use Test::More;
 if ( eval { require PDF::Builder } ) {
-    if ( $PDF::Builder::VERSION ge '3.018') {
+    if ( $PDF::Builder::VERSION eq '3.018' ) {
 	plan skip_all => "PDF::Builder incompatible version";
     }
     else {
