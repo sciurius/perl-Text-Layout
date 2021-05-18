@@ -8,6 +8,7 @@ package Text::Layout::PDFAPI2;
 
 use parent 'Text::Layout';
 use Carp;
+use List::Util qw(max);
 
 my $hb;
 
@@ -116,9 +117,19 @@ sub render {
 			$fragment->{color},
 		       ),
 		  ) if 0;
-	    $text->translate( $x, $y-$fragment->{base}-$bl );
-	    $text->text( $fragment->{text} );
-	    $x += $font->width( $fragment->{text} ) * $fragment->{size};
+	    my $t = $fragment->{text};
+	    my $maxw = 0;
+	    my $y = $y-$fragment->{base}-$bl;
+	    while ( $t ne "" ) {
+		( $t, my $rest ) = split( /\n/, $t, 2 );
+		my $sz = $fragment->{size} || $self->{_currentsize};
+		$text->translate( $x, $y );
+		$text->text($t);
+		$maxw = max($font->width($t) * $sz, $maxw);
+		$y -= $sz;
+		$t = $rest // "";
+	    }
+	    $x += $maxw;
 	}
     }
     $text->restore;
