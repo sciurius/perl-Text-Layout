@@ -11,6 +11,7 @@ use Carp;
 use List::Util qw(max);
 
 my $hb;
+my $fc;
 
 #### API
 sub new {
@@ -198,8 +199,11 @@ sub bbox {
 #### API
 sub load_font {
     my ( $self, $font ) = @_;
-    return $self->{cache}->{$font}
-      if $self->{cache}->{$font};
+
+    if ( $fc->{$font} ) {
+	# warn("Loaded font $font (cached)\n");
+	return $fc->{$font};
+    }
 
     my $ff;
     if ( $font =~ /\.[ot]tf$/ ) {
@@ -216,7 +220,7 @@ sub load_font {
     croak( "Cannot load font: ", $font, "\n", $@ ) unless $ff;
     # warn("Loaded font: $font\n");
     $self->{font} = $ff;
-    $self->{cache}->{$font} = $ff;
+    $fc->{$font} = $ff;
     return $ff;
 }
 
