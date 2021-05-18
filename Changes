@@ -2,6 +2,10 @@ Revision history for Text::Layout
 
 0.000
 
+0.020	2021-05-18
+
+	Use common font cache for PDFAPI.
+	Handle some more weight variants.
 	Added testing PDF::Builder unless it is of an incompatible
 	version. As of 3.019 PDF::Builder changed the font metrics to
 	compatible values.
