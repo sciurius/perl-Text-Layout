@@ -97,6 +97,12 @@ sub new {
     return $self;
 }
 
+sub reset {
+    my ( $self ) = @_;
+    %fonts = ();
+    @dirs = ();
+}
+
 =over
 
 =item register_fonts( $font, $family, $style [ , $weight ] [ , $props ] )
