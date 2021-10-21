@@ -2,6 +2,15 @@ Revision history for Text::Layout
 
 0.000
 
+0.023	2021-10-21
+
+	Add support for underline, overline and strike, and their
+	colours.
+
+	Add support for hyperlinks (span attributes a, href and link).
+	Note that this is not part of the official Pango Markup
+	specification.
+	
 0.022	2021-10-04
 
 	Fix some reentrancy problems.
