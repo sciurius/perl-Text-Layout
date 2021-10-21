@@ -2,6 +2,8 @@ Revision history for Text::Layout
 
 0.000
 
+0.024	2021-10-21
+
 	Retain case sensitivity for links.
 
 	Remove debugging info.
