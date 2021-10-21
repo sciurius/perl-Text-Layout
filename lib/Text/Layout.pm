@@ -511,6 +511,9 @@ sub set_markup {
 	    if ( $k =~ /^([-\w]+)=(.+)$/ ) {
 		my ( $k, $v ) = ( $1, $2 );
 
+		# Ignore case unless required.
+		$v = lc $v unless $k =~ /^(link|href|a)$/;
+
 		# Strip quotes. Shouldn't be necessary now we use shellwords.
 		# $v =~ s/^(["'])(.*)\1$/$2/;
 
@@ -664,9 +667,9 @@ sub set_markup {
 	# Opening markup, e.g. <b> or <span ...>.
 	elsif ( $a =~ m;^<\s*([-\w]+)(.*)>$; ) {
 	    my $k = lc $1;
-	    my $v = lc $2;
+	    my $v = $2;
 	    # Save.
-	    push( @stack, [ "<$k$v>",
+	    push( @stack, [ "<$k".lc($v).">",
 			    $fcur, $fsiz, $fcol, $undl, $uncl, $ovrl, $ovcl,
 			    $strk, $stcl, $base, $link ] );
 

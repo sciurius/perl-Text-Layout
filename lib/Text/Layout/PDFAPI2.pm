@@ -127,7 +127,7 @@ sub render {
 			$fragment->{underline}||'""', $fragment->{ulcolor}||'""',
 			$fragment->{strike}||'""', $fragment->{strcol}||'""',
 		       ),
-		  ) if 1;
+		  ) if 0;
 	    my $t = $fragment->{text};
 	    if ( $t ne "" ) {
 		my $y = $y-$fragment->{base}-$bl;
@@ -187,9 +187,10 @@ sub render {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
 	    my $ann = $text->{' apipage'}->annotation;
 	    $ann->url( $fragment->{link},
-		       -border => [ 0, 0, 1 ],
+		     #  -border => [ 0, 0, 1 ],
 		       -rect => [ $x0, $y0, #-$fragment->{base}-$bl,
-				  $x, $y0 - $sz ] );
+		     		  $x, $y0 - $sz ]
+		     );
 	}
 	$gfx->restore;
     }

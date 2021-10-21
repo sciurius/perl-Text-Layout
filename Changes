@@ -2,6 +2,10 @@ Revision history for Text::Layout
 
 0.000
 
+	Retain case sensitivity for links.
+
+	Remove debugging info.
+
 0.023	2021-10-21
 
 	Add support for underline, overline and strike, and their
