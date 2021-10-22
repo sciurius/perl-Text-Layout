@@ -144,11 +144,14 @@ sub render {
 	$gfx->save;
 	my $dw = 1000;
 	my $xh = $font->xheight;
+
 	my @strikes;
 	if ( $fragment->{underline} && $fragment->{underline} ne 'none' ) {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
-	    my $d = -$font->underlineposition()*$sz/$dw;
-	    my $h = $font->underlinethickness()*$sz/$dw;
+	    my $d = -( $f->{underline_position}
+		       || $font->underlineposition ) * $sz/$dw;
+	    my $h = ( $f->{underline_thickness}
+		      || $font->underlinethickness ) * $sz/$dw;
 	    my $col = $fragment->{ulcolor} // $fragment->{color};
 	    if ( $fragment->{underline} eq 'double' ) {
 		push( @strikes, [ $d-0.125*$h, $h * 0.75, $col ],
@@ -158,19 +161,28 @@ sub render {
 		push( @strikes, [ $d+$h/2, $h, $col ] );
 	    }
 	}
+
 	if ( $fragment->{strike} ) {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
-	    my $h = $font->underlinethickness()*$sz/$dw;
-	    push( @strikes,
-		  [ -$xh/$sz+$h/2, $font->underlinethickness*$sz/$dw,
-		    $fragment->{strcol} // $fragment->{color} ] );
+	    my $d = -( $f->{strikeline_position}
+		       ? $f->{strikeline_position}
+		       : 0.6*$xh ) * $sz/$dw;
+	    my $h = ( $f->{strikeline_thickness}
+		      || $f->{underline_thickness}
+		      || $font->underlinethickness ) * $sz/$dw;
+	    my $col = $fragment->{ulcolor} // $fragment->{color};
+	    push( @strikes, [ $d+$h/2, $h, $col ] );
 	}
+
 	if ( $fragment->{overline} && $fragment->{overline} ne 'none' ) {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
-	    my $d = -$font->underlineposition()*$sz/$dw;
-	    my $h = $font->underlinethickness()*$sz/$dw;
+	    my $h = ( $f->{overline_thickness}
+		      || $f->{underline_thickness}
+		      || $font->underlinethickness ) * $sz/$dw;
+	    my $d = -( $f->{overline_position}
+		       ? $f->{overline_position} * $sz/$dw
+		       : $xh*$sz/$dw + 2*$h );
 	    my $col = $fragment->{ovrcol} // $fragment->{color};
-	    $d = -2*$xh/$sz;
 	    if ( $fragment->{overline} eq 'double' ) {
 		push( @strikes, [ $d-0.125*$h, $h * 0.75, $col ],
 		                [ $d+1.125*$h, $h * 0.75, $col ] );
@@ -183,10 +195,10 @@ sub render {
 	    _line( $gfx, $x0, $y0-$fragment->{base}-$bl-$_->[0],
 		   $x-$x0, 0, $_->[2], $_->[1] );
 	}
-	if ( $fragment->{link} ) {
+	if ( $fragment->{href} ) {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
 	    my $ann = $text->{' apipage'}->annotation;
-	    $ann->url( $fragment->{link},
+	    $ann->url( $fragment->{href},
 		     #  -border => [ 0, 0, 1 ],
 		       -rect => [ $x0, $y0, #-$fragment->{base}-$bl,
 		     		  $x, $y0 - $sz ]

@@ -16,4 +16,8 @@ t/150-pdfbuilder.t
 t/152-pdfbuilder.t
 tests/pdfapi1.pl
 tests/pdfapi2.pl
+tests/pdfapi3.pl
+tests/pdfapi4.pl
+tests/strikes.pl
+tests/underline.pl
 tests/md1.pl

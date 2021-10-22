@@ -185,17 +185,9 @@ Also supported but not part of the official Pango Markup specification.
 
 =over 8
 
-=item a="C<URL>"
-
-Creates a clickable target that activates the I<URL>.
-
 =item href="C<URL>"
 
-Same as a="C<URL>".
-
-=item link="C<URL>"
-
-Same as a="C<URL>".
+Creates a clickable target that activates the I<URL>.
 
 =back
 
@@ -474,7 +466,7 @@ sub set_markup {
     my $fcur = $self->{_currentfont};
     my $fcol = $self->{_currentcolor};
     my $fsiz = $self->{_currentsize};
-    my $link;
+    my $href;
     my $undl;
     my $uncl = $fcol;
     my $ovrl;
@@ -614,9 +606,9 @@ sub set_markup {
 		    # Not supported.
 		}
 
-		# <span link="...">
-		elsif ( $k =~ /^(link|href|a)$/ ) {
-		    $link = $v;
+		# <span href="...">
+		elsif ( $k eq "href" ) {
+		    $href = $v;
 		}
 	    }
 
@@ -648,7 +640,7 @@ sub set_markup {
 		    # Restore.
 		    ( undef,
 		      $fcur, $fsiz, $fcol, $undl, $uncl, $ovrl, $ovcl,
-		      $strk, $stcl, $base, $link ) = @{$stack[-1]};
+		      $strk, $stcl, $base, $href ) = @{$stack[-1]};
 		    pop(@stack);
 		}
 		else {
@@ -671,7 +663,7 @@ sub set_markup {
 	    # Save.
 	    push( @stack, [ "<$k".lc($v).">",
 			    $fcur, $fsiz, $fcol, $undl, $uncl, $ovrl, $ovcl,
-			    $strk, $stcl, $base, $link ] );
+			    $strk, $stcl, $base, $href ] );
 
 	    # <b> <strong>
 	    if ( $k =~ /^(b|strong)$/ ) {
@@ -742,7 +734,7 @@ sub set_markup {
 		    strike     => $strk,
 		    strcol     => $stcl,
 		    base       => $base,
-		    link       => $link,
+		    href       => $href,
 		  } );
 	}
     }
