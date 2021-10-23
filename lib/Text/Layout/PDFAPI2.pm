@@ -124,8 +124,8 @@ sub render {
 			$fragment->{font}->{weight},
 			$fragment->{size} || $self->{_currentsize},
 			$fragment->{color},
-			$fragment->{underline}||'""', $fragment->{ulcolor}||'""',
-			$fragment->{strike}||'""', $fragment->{strcol}||'""',
+			$fragment->{underline}||'""', $fragment->{underline_color}||'""',
+			$fragment->{strikethrough}||'""', $fragment->{strikethrough_color}||'""',
 		       ),
 		  ) if 0;
 	    my $t = $fragment->{text};
@@ -152,7 +152,7 @@ sub render {
 		       || $font->underlineposition ) * $sz/$dw;
 	    my $h = ( $f->{underline_thickness}
 		      || $font->underlinethickness ) * $sz/$dw;
-	    my $col = $fragment->{ulcolor} // $fragment->{color};
+	    my $col = $fragment->{underline_color} // $fragment->{color};
 	    if ( $fragment->{underline} eq 'double' ) {
 		push( @strikes, [ $d-0.125*$h, $h * 0.75, $col ],
 		                [ $d+1.125*$h, $h * 0.75, $col ] );
@@ -162,7 +162,7 @@ sub render {
 	    }
 	}
 
-	if ( $fragment->{strike} ) {
+	if ( $fragment->{strikethrough} ) {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
 	    my $d = -( $f->{strikeline_position}
 		       ? $f->{strikeline_position}
@@ -170,7 +170,7 @@ sub render {
 	    my $h = ( $f->{strikeline_thickness}
 		      || $f->{underline_thickness}
 		      || $font->underlinethickness ) * $sz/$dw;
-	    my $col = $fragment->{ulcolor} // $fragment->{color};
+	    my $col = $fragment->{strikethrough_color} // $fragment->{color};
 	    push( @strikes, [ $d+$h/2, $h, $col ] );
 	}
 
@@ -182,7 +182,7 @@ sub render {
 	    my $d = -( $f->{overline_position}
 		       ? $f->{overline_position} * $sz/$dw
 		       : $xh*$sz/$dw + 2*$h );
-	    my $col = $fragment->{ovrcol} // $fragment->{color};
+	    my $col = $fragment->{overline_color} // $fragment->{color};
 	    if ( $fragment->{overline} eq 'double' ) {
 		push( @strikes, [ $d-0.125*$h, $h * 0.75, $col ],
 		                [ $d+1.125*$h, $h * 0.75, $col ] );
