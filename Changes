@@ -2,6 +2,8 @@ Revision history for Text::Layout
 
 0.000
 
+	Add tests for markup parsing.
+
 0.025	2021-10-22
 
 	Add font config properties underline_thickness,
