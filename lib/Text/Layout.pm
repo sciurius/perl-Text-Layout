@@ -517,7 +517,9 @@ sub set_markup {
 
 		# <span face="Sans">
 		elsif ( $k =~ /^(face|font_family)$/ ) {
-		    $fcur = Text::Layout::FontConfig->find_font($v);
+		    $fcur = Text::Layout::FontConfig->find_font( $v,
+								 $fcur->{style},
+								 $fcur->{weight});
 		}
 
 		# <span size=20>
@@ -723,19 +725,19 @@ sub set_markup {
 	# Text.
 	else {
 	    push( @content,
-		  { text       => $a,
-		    font       => $fcur,
-		    size       => $fsiz,
-		    color      => $fcol,
-		    underline  => $undl,
-		    ulcol      => $uncl,
-		    overline   => $ovrl,
-		    ovrcol     => $ovcl,
-		    strike     => $strk,
-		    strcol     => $stcl,
-		    base       => $base,
-		    href       => $href,
-		  } );
+		  { text		     => $a,
+		    font		     => $fcur,
+		    size		     => $fsiz,
+		    color		     => $fcol,
+		    underline		     => $undl,
+		    underline_color	     => $uncl,
+		    overline		     => $ovrl,
+		    overline_color	     => $ovcl,
+		    strikethrough	     => $strk,
+		    strikethrough_color	     => $stcl,
+		    base		     => $base,
+		    href		     => $href,
+		  } ) if defined $a && $a ne '';
 	}
     }
 
