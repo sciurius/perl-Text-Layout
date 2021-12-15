@@ -90,7 +90,7 @@ sub get_font {
     $self->{font} ||= do {
 	croak("Forgot to pass a layout context to get_font?")
 	  unless UNIVERSAL::isa( $context, 'Text::Layout' );
-	$context->load_font( $self->{loader_data} );
+	$context->load_font( $self->{loader_data}, $self );
     };
 }
 

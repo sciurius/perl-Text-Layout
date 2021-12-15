@@ -272,17 +272,21 @@ sub bbox {
 
 #### API
 sub load_font {
-    my ( $self, $font ) = @_;
+    my ( $self, $font, $fd ) = @_;
 
     if ( $fc->{$font} ) {
 	# warn("Loaded font $font (cached)\n");
 	return $fc->{$font};
     }
-
     my $ff;
     if ( $font =~ /\.[ot]tf$/ ) {
 	eval {
-	    $ff = $self->{_context}->ttfont( $font, -dokern => 1 );
+	    $ff = $self->{_context}->ttfont( $font,
+					     -dokern => 1,
+					     $fd->{nosubset}
+					     ? ( -nosubset => 1 )
+					     : (),
+					   );
 	};
     }
     else {
