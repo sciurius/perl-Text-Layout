@@ -48,6 +48,9 @@ Example, using PDF::API2 integration:
     # Create a markup instance.
     my $layout = Text::Layout->new($pdf);
 
+    # This example uses PDF corefonts only.
+    Text::Layout::FontConfig->register_corefonts;
+
     $layout->set_font_description(Text::Layout::FontConfig->from_string("times 40"));
     $layout->set_markup( q{The <i><span foreground="red">quick</span> <span size="20"><b>brown</b></span></i> fox} );
 
@@ -108,7 +111,7 @@ this and uses PDF units everywhere, except for font sizes. Since we
 want e.g. a C<Times 20> font to be of equal size in the two systems,
 it will set the PDF font size to 15.
 
-I<DBD: Is this really a good idea?>
+I<TBD: Is this really a good idea?>
 
 =head1 SUPPORTED MARKUP
 
@@ -460,7 +463,7 @@ my %magstep =
 
 sub set_markup {
     my ( $self, $string ) = @_;
-
+    confess("set_markup with UNDEF") unless defined $string;
     my @stack;
     my @content;
     my $fcur = $self->{_currentfont};
