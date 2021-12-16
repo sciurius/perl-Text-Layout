@@ -3,9 +3,9 @@
 # This is an example of using Text::Layout to create the same document
 # as native Pango.
 #
-# This example uses Text::Layout in Pango compliance mode. The
-# relevant parts of this program and its Pango counterpart are very
-# much the same.
+# This example uses Text::Layout in comfort mode. The relevant parts
+# of this program differ slightly from its Pango counterpart but are
+# much easier to program and maintain.
 
 use strict;
 use warnings;
@@ -16,7 +16,7 @@ use PDF::API2;
 use Text::Layout;
 
 # Create document and graphics environment.
-my $pdf = PDF::API2->new( file => 'pdfapi1.pdf' );
+my $pdf = PDF::API2->new( file => 'pdfapi1c.pdf' );
 $pdf->mediabox( 595, 842 );	# A4
 
 # Set up page and get the text context.
@@ -26,16 +26,9 @@ my $text = $page->text;
 # Create a layout instance.
 my $layout = Text::Layout->new($pdf);
 
-# Tell Text::Layout that we are running in Pango compatibility.
-my $PANGO_SCALE = $layout->set_pango_mode("on");
-
-# Scale from Cairo (PDF) font size to Pango.
-my $PANGO_FONT_SCALE = 0.75 * $PANGO_SCALE;
-
-# Font sizes used, scaled.
-my $realfontsize = 60;
-my $fontsize = $realfontsize * $PANGO_FONT_SCALE;
-my $tinysize = 20 * $PANGO_FONT_SCALE;
+# Font sizes used.
+my $fontsize = 60;
+my $tinysize = 20;
 
 sub main {
     # Select a font.
@@ -51,7 +44,7 @@ sub main {
     $layout->set_markup( qq{Áhe <i><span foreground="red">quick</span> <span size="$tinysize"><b>brown</b></span></i> fox} );
 
     # Left align text.
-    $layout->set_width( 595 * $PANGO_SCALE );
+    $layout->set_width(595);
     $layout->set_alignment("left");
 
     # Render it.
@@ -60,7 +53,7 @@ sub main {
     $y -= 100;
 
     # Right align text.
-    $layout->set_width( 595 * $PANGO_SCALE );
+    $layout->set_width(595);
     $layout->set_alignment("right");
 
     # Render it.
@@ -69,14 +62,14 @@ sub main {
     $y -= 100;
 
     # Plain PDF::API2, no Text::Layout.
-    $text->font( $font->{font}, $realfontsize );
+    $text->font( $font->{font}, $fontsize );
     $text->translate( $x, $y-50 );
     $text->text(q{Áhe quick brown fox});
 
     $y -= 100;
 
     # Right align text.
-    $layout->set_width( 595 * $PANGO_SCALE );
+    $layout->set_width(595);
     $layout->set_alignment("center");
 
     # Render it.

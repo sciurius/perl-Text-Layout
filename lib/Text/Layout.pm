@@ -91,27 +91,34 @@ PDF::API2 uses the coordinate system as defined in the PDF
 specification. It starts off bottom left. For western text the
 direction is increasing I<x> and B<de>creasing I<y>.
 
+=head1 Pango Conformance Mode
+
+Text::Layout can operate in one of two modes: I<convenience mode>
+(enabled by default), and I<Pango conformance mode>. The desired mode
+can be selected by calling the method set_pango_scaling().
+
 =head2 Pango coordinates
 
 Pango uses two device coordinates units: Pango units and device units.
-Pango units are 1000 (C<PANGO_SCALE>) times the device units.
+Pango units are 1024 (C<PANGO_SCALE>) times the device units.
 
 Several methods have two variants, e.g. get_size() and
 get_pixel_size(). The pixel-variant uses device units while the other
 variant uses Pango units.
 
-This module assumes no scaling. If you insist on multiplying all
-values by PANGO_SCALE use the set_pango_scale() method to say so and
-we'll divide everything back again internally.
+In I<convenience mode>, this module assumes no scaling. All units are
+PDF device units (1/72 inch).
 
 =head2 Pango device units
 
-Pango device units are 96dpi while PDF uses 72dpi. This module ignores
-this and uses PDF units everywhere, except for font sizes. Since we
-want e.g. a C<Times 20> font to be of equal size in the two systems,
-it will set the PDF font size to 15.
+Device units are used for font rendering. Pango device units are 96dpi
+while PDF uses 72dpi.
 
-I<TBD: Is this really a good idea?>
+In I<convenience mode> this is ignored. E.g. a C<Times 20> font 
+will be of equal size in the two systems,
+
+In I<Pango conformance mode> you would need to specify a font size of
+C<15000> to get a 20pt font.
 
 =head1 SUPPORTED MARKUP
 
@@ -249,7 +256,7 @@ underline=single
 =cut
 
 use constant {
-    PANGO_SCALE		=> 1000,
+    PANGO_SCALE		=> 1024,
     PANGO_DEVICE_UNITS	=>   96,
     PDF_DEVICE_UNITS	=>   72,
 };
@@ -298,6 +305,7 @@ sub new {
 	    _content => [],
 	    _px2pu   => \&px2pu,
 	    _pu2px   => \&pu2px,
+	    _pango_scale => 0,
 	  } => $pkg;
 }
 
@@ -531,7 +539,10 @@ sub set_markup {
 			#ok
 		    }
 		    elsif ( $v =~ /\d+(?:\.\d+)?$/ ) {
-			$fsiz = 0 + $v;
+			$fsiz = $self->{_pu2px}->($v);
+			if ( $self->{_pango_scale} ) {
+			    $fsiz *= PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS;
+			}
 		    }
 		    else {
 			carp("Invalid size: $v\n");
@@ -804,8 +815,15 @@ sub set_font_description {
       unless UNIVERSAL::isa( $description, $o );
 
     $self->{_currentfont}  = $description;
-    $self->{_currentsize}  = $description->{size}
-      if $description->{size};
+    if ( $description->{size} ) {
+	if ( $self->{_pango_scale} ) {
+	    $self->{_currentsize} = $self->{_pu2px}->($description->{size})
+	      * PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS;
+	}
+	else {
+	    $self->{_currentsize} = $self->{_pu2px}->($description->{size});
+	}
+    }
     $self->{_currentcolor} = $description->{color} || "black";
 }
 
@@ -1506,8 +1524,6 @@ sub set_font_size {
 
 Returns the size of the current font.
 
-NOTE: This is not a Pango API method.
-
 =back
 
 =cut
@@ -1589,39 +1605,36 @@ sub show {
 
 =over
 
-=item set_pango_scale( $scale )
+=item set_pango_mode( $enable )
 
-Sets the pango scaling to $scale, which should be 1000.
+Enable/disable Pango conformance mode.
+See L<Pango Conformance Mode>.
 
-Set to 1 to cancel scaling, causing all methods to use pixel units
-instead of Pango units. Set to 0 to get the default behaviour.
+Returns the internal Pango scaling factor if enabled.
 
 =back
 
 =cut
 
-sub set_pango_scale {
-    my ( $self, $scale ) = @_;
-    $scale //= PANGO_SCALE;
-    if ( $scale == 0 ) {
-	$self->{_px2pu} = \&px2pu;
-	$self->{_pu2px} = \&pu2px;
+sub set_pango_mode {
+    my ( $self, $enable ) = @_;
+    if ( $enable ) {
+	$self->{_px2pu} = sub { $_[0] * PANGO_SCALE };
+	$self->{_pu2px} = sub { $_[0] / PANGO_SCALE };
+	return $self->{_pango_scale} = PANGO_SCALE;
     }
-    elsif ( $scale == 1 ) {
-	$self->{_px2pu} = sub { $_[0] };
-	$self->{_pu2px} = sub { $_[0] };
-    }
-    else {
-	carp("Pango scale should be set to @{[PANGO_SCALE]} for Pango conformance")
-	  unless $scale == PANGO_SCALE;
-	$self->{_px2pu} = sub { $_[0] * $scale };
-	$self->{_pu2px} = sub { $_[0] / $scale };
-    }
+
+    $self->{_px2pu} = \&px2pu;
+    $self->{_pu2px} = \&pu2px;
+    return $self->{_pango_scale} = 0;
 }
+
+# Legacy.
+*set_pango_scale = \&set_pango_mode;
 
 sub get_pango_scale {
     my ( $self ) = @_;
-    $self->{_px2pu}->(1);
+    $self->{_pango_scale} ? PANGO_SCALE : 1;
 }
 
 sub nyi {

@@ -74,7 +74,7 @@ sub render {
     my @bb = $self->get_pixel_bbox;
     my $bl = $bb[3];
     if ( $self->{_width} && $self->{_alignment} ) {
-	my $w = $bb[2] - $bb[0];
+	my $w = $bb[2];
 	if ( $w < $self->{_width} ) {
 	    if ( $self->{_alignment} eq "right" ) {
 		$x += $self->{_width} - $w;
@@ -267,7 +267,7 @@ sub bbox {
 	}
     }
 
-    [ $x, $d, $x+$w, $a ];
+    [ $x, $d, $w, $a ];
 }
 
 #### API
@@ -347,7 +347,7 @@ sub showbb {
 
     # Bounding box, top-left coordinates.
     my %e = %{($self->get_pixel_extents)[1]};
-    # printf( "EXT: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
+    printf( "EXT: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
 
     # NOTE: Some fonts include natural spacing in the bounding box.
     # NOTE: Some fonts exclude accents on capitals from the bounding box.
@@ -367,7 +367,7 @@ sub showbb {
     $gfx->linewidth( 0.25 );
     $gfx->strokecolor($col);
     $e{height} = -$e{height};		# PDF coordinates
-    $gfx->rectxy( $e{x}, $e{y}, $e{width}, $e{height} );;
+    $gfx->rectxy( $e{x}, $e{y}, $e{x} + $e{width}, $e{height} );;
     $gfx->stroke;
     $gfx->restore;
 }
