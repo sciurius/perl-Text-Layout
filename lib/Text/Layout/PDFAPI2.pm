@@ -140,8 +140,7 @@ sub render {
 
 	next unless $x > $x0;
 
-	my $gfx = $text->{' apipage'}->gfx;
-	$gfx->save;
+	my $gfx;
 	my $dw = 1000;
 	my $xh = $font->xheight;
 
@@ -192,6 +191,10 @@ sub render {
 	    }
 	}
 	for ( @strikes ) {
+	    unless ( $gfx ) {
+		$gfx = $text->{' apipage'}->gfx;
+		$gfx->save;
+	    }
 	    _line( $gfx, $x0, $y0-$fragment->{base}-$bl-$_->[0],
 		   $x-$x0, 0, $_->[2], $_->[1] );
 	}
@@ -204,7 +207,7 @@ sub render {
 		     		  $x, $y0 - $sz ]
 		     );
 	}
-	$gfx->restore;
+	$gfx->restore if $gfx;
     }
     # $text->restore;		# doesn't do anything
 }

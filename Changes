@@ -11,6 +11,7 @@ Revision history for Text::Layout
 	UNLIKELY INCOMPATIBLE: method set_pango_scale does now enable/disable.
 	The scaling is fixed to PANGO_SCALE (1024).
 	Fixed some issues with pango scaling.
+	Fix regression that sometimes tripled the resultant PDF.
 
 0.025	2021-10-22
 
