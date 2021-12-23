@@ -118,7 +118,7 @@ In I<convenience mode> this is ignored. E.g. a C<Times 20> font
 will be of equal size in the two systems,
 
 In I<Pango conformance mode> you would need to specify a font size of
-C<15000> to get a 20pt font.
+C<15360> to get a 20pt font.
 
 =head1 SUPPORTED MARKUP
 
@@ -1343,19 +1343,20 @@ Computes the logical and ink extents of the layout.
 
 Logical extents are usually what you want for positioning things.
 
-Return value is an array (in list context) or an array ref (in scalar
-context) containing two hash refs with 4 values: C<x>, C<y>, C<width>,
-and C<height>. The first reflects the ink extents, the second the
-logical extents.
+Return value in scalar context is a hash ref with 4 values:
+ C<x>, C<y>, C<width>, and C<height>
+describing the logical extents of the layout.
+In list context an array of two hashrefs is returned.
+The first reflects the ink extents, the second the logical extents.
 
-C<x> will reflect the offset when text is centered or right aligned.
-It will be zero for left aligned text. For right aligned text, it will
-be the width of the layout.
+In the extents, C<x> will reflect the offset when text is centered or
+right aligned. It will be zero for left aligned text. For right
+aligned text, it will be the width of the layout.
 
 C<y> will reflect the offset when text is centered vertically or
 bottom aligned. It will be zero for top aligned text.
 
-Implementation note: Since the PDF::API support layer cannot calculate ink,
+Implementation note: If the PDF::API support layer cannot calculate ink,
 this function returns two identical extents.
 
 =back
@@ -1364,10 +1365,17 @@ this function returns two identical extents.
 
 sub get_extents {
     my ( $self ) = @_;
+    my $need_ink = wantarray;
 
-    my @bb = @{$self->get_bbox};
-    my $res = { x => $bb[0], y => 0, width => $bb[2], height => $bb[3]-$bb[1] };
-    return wantarray ? ( $res, $res ) : [ $res, $res ];
+    my @bb = @{ $self->get_bbox($need_ink) };
+    my $res = { x     => $bb[0], y      => 0,
+		width => $bb[2], height => $bb[3]-$bb[1] };
+    my $ink = $res;
+    if ( @bb > 4 ) {
+	$ink = { x     => $bb[4], y      => $bb[5],
+		 width => $bb[6], height => $bb[7]-$bb[5] };
+    }
+    return $need_ink ? ( $ink, $res ) : $res;
 }
 
 =over
@@ -1383,9 +1391,17 @@ Same as get_extents, but using device units.
 sub get_pixel_extents {
     my ( $self ) = @_;
 
-    my @bb = @{$self->get_pixel_bbox};
-    my $res = { x => $bb[0], y => 0, width => $bb[2], height => $bb[3]-$bb[1] };
-    return wantarray ? ( $res, $res ) : [ $res, $res ];
+    my $need_ink = wantarray;
+
+    my @bb = @{ $self->get_pixel_bbox($need_ink) };
+    my $res = { x     => $bb[0], y      => 0,
+		width => $bb[2], height => $bb[3]-$bb[1] };
+    my $ink = $res;
+    if ( @bb > 4 ) {
+	$ink = { x     => $bb[4], y      => $bb[5],
+		 width => $bb[6], height => $bb[7]-$bb[5] };
+    }
+    return $need_ink ? ( $ink, $res ) : $res;
 }
 
 =over
@@ -1406,7 +1422,7 @@ returned.
 
 sub get_size {
     my ( $self ) = @_;
-    my $e = ($self->get_extents)[1];
+    my $e = $self->get_extents;
     wantarray
       ? return ( $e->{width}, $e->{height} )
       : return { width => $e->{width}, height => $e->{height} };
@@ -1424,7 +1440,7 @@ Same as get_size().
 
 sub get_pixel_size {
     my ( $self ) = @_;
-    my $e = ($self->get_pixel_extents)[1];
+    my $e = $self->get_pixel_extents;
     wantarray
       ? return ( $e->{width}, $e->{height} )
       : return { width => $e->{width}, height => $e->{height} };
@@ -1567,19 +1583,26 @@ bb[3] = ascend is a positive value
 
 NOTE: Some fonts do not include accents on capital letters in the ascend.
 
+If an argument is supplied and true, get_bbox() will attempt to
+calculate the ink extents as well, and add these as another set of 4
+elements,
+
+In list context returns the array of values, in scalar context an
+array ref.
+
 =back
 
 =cut
 
 sub get_pixel_bbox {
-    my ( $self ) = @_;
-    my $res = $self->bbox;
+    my ( $self, $all ) = @_;
+    my $res = $self->bbox($all);
     wantarray ? @$res : $res;
 }
 
 sub get_bbox {
-    my ( $self ) = @_;
-    my @res = map { $self->{_px2pu}->($_) } ( $self->get_pixel_bbox );
+    my ( $self, $all ) = @_;
+    my @res = map { $self->{_px2pu}->($_) } ( $self->get_pixel_bbox($all) );
     wantarray ? @res : \@res;
 }
 
