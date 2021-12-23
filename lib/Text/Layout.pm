@@ -398,6 +398,7 @@ sub set_text {
 	  color => $self->{_currentcolor},
 	  base  => 0,
 	} ];
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -764,6 +765,7 @@ sub set_markup {
 
     # Store content.
     $self->{_content} = \@content;
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -825,6 +827,7 @@ sub set_font_description {
 	}
     }
     $self->{_currentcolor} = $description->{color} || "black";
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -863,6 +866,7 @@ Implementation note: Only alignment is implemented.
 sub set_width {
     my ( $self, $width ) = @_;
     $self->{_width} = $self->{_pu2px}->($width);
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -896,6 +900,7 @@ Implementation note: Height restrictions are not yet implemented.
 sub set_height {
     my ( $self, $height ) = @_;
     $self->{_height} = $self->{_pu2px}->($height);
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -1079,6 +1084,7 @@ Not yet implemented.
 sub set_spacing {
     my ( $self, $spacing ) = @_;
     $self->{_currentspacing} = $self->{_pu2px}->($spacing);
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -1121,6 +1127,7 @@ Not yet implemented.
 sub set_line_spacing {
     my ( $self, $factor ) = @_;
     $self->{_currentlinespacing} = $factor;
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -1212,6 +1219,7 @@ sub set_alignment {
     else {
 	croak("Invalid alignment: $align");
     }
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -1532,6 +1540,7 @@ Sets the size for the current font.
 sub set_font_size {
     my ( $self, $size ) = @_;
     $self->{_currentsize} = $size;
+    delete( $self->{_bbcache} );
 }
 
 =over
@@ -1596,7 +1605,14 @@ array ref.
 
 sub get_pixel_bbox {
     my ( $self, $all ) = @_;
-    my $res = $self->bbox($all);
+    my $res;
+    if ( $self->{_bbcache}
+	 && @{ $self->{_bbcache} } == ($all ? 8 : 4) ) {
+	$res = $self->{_bbcache};
+    }
+    else {
+	$res = $self->{_bbcache} = $self->bbox($all);
+    }
     wantarray ? @$res : $res;
 }
 
@@ -1649,6 +1665,7 @@ sub set_pango_mode {
 
     $self->{_px2pu} = \&px2pu;
     $self->{_pu2px} = \&pu2px;
+    delete( $self->{_bbcache} );
     return $self->{_pango_scale} = 0;
 }
 

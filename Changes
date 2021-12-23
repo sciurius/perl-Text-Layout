@@ -5,6 +5,7 @@ Revision history for Text::Layout
 	Pango compatibility (POSSIBLY INCOMPATIBLE):
 	get_{pixel_}extents now returns the layout extents in scalar
 	context. In this case, ink extents are not calculated.
+	Improve performance (15%) by cacheing bbox.
 
 0.026	2021-12-22
 
