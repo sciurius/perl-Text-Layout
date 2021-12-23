@@ -140,7 +140,6 @@ sub render {
 
 	next unless $x > $x0;
 
-	my $gfx;
 	my $dw = 1000;
 	my $xh = $font->xheight;
 
@@ -191,13 +190,18 @@ sub render {
 	    }
 	}
 	for ( @strikes ) {
-	    unless ( $gfx ) {
-		$gfx = $text->{' apipage'}->gfx;
-		$gfx->save;
-	    }
-	    _line( $gfx, $x0, $y0-$fragment->{base}-$bl-$_->[0],
-		   $x-$x0, 0, $_->[2], $_->[1] );
+
+	    # Mostly copied from PDF::API2::Content::_text_underline.
+	    $text->add_post(PDF::API2::Content::_save());
+
+	    $text->add_post($text->_strokecolor($_->[2]));
+	    $text->add_post(PDF::API2::Content::_linewidth($_->[1]));
+	    $text->add_post(PDF::API2::Content::_move($x0, $y0-$fragment->{base}-$bl-$_->[0]));
+	    $text->add_post(PDF::API2::Content::_line($x, $y0-$fragment->{base}-$bl-$_->[0]));
+	    $text->add_post(PDF::API2::Content::_stroke());
+	    $text->add_post(PDF::API2::Content::_restore());
 	}
+
 	if ( $fragment->{href} ) {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
 	    my $ann = $text->{' apipage'}->annotation;
@@ -207,9 +211,7 @@ sub render {
 		     		  $x, $y0 - $sz ]
 		     );
 	}
-	$gfx->restore if $gfx;
     }
-    # $text->restore;		# doesn't do anything
 }
 
 #### API
