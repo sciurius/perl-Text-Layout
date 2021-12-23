@@ -2,6 +2,8 @@ Revision history for Text::Layout
 
 0.000
 
+0.027	2021-12-23
+
 	Pango compatibility (POSSIBLY INCOMPATIBLE):
 	get_{pixel_}extents now returns the layout extents in scalar
 	context. In this case, ink extents are not calculated.
