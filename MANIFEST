@@ -17,6 +17,8 @@ t/100-pdfapi.t
 t/102-pdfapi.t
 t/150-pdfbuilder.t
 t/152-pdfbuilder.t
+t/200-extents.t
+t/Polo-SemiScript.ttf
 tests/pdfapi1.pl
 tests/pdfapi2.pl
 tests/pdfapi3.pl

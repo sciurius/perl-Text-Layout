@@ -326,6 +326,62 @@ sub PDF::API2::Resource::CIDFont::TrueType::fontfilename {
     $self->fontfile->{' font'}->{' fname'};
 }
 
+# Add extents calculation for CIDfonts.
+sub PDF::API2::Resource::CIDFont::extents {
+    my ( $self, $text, $size ) = @_;
+    $size //= 1;
+    my $e = $self->extents_cid( $self->cidsByStr($text), $size );
+    return $e;
+}
+
+sub PDF::API2::Resource::CIDFont::extents_cid {
+    my ( $self, $text, $size ) = @_;
+    my $width = 0;
+    my ( $xMin, $xMax, $yMin, $yMax, $bl );
+    my $glyphs = $self->fontobj->{loca}->read->{glyphs};
+    $bl = $self->ascender;
+    my $scale = ( $size || 1) / 1000;
+    my $lastglyph = 0;
+    my $lastwidth;
+    foreach my $n (unpack('n*', $text)) {
+        $width += $lastwidth = $self->wxByCId($n);
+        if ($self->{'-dokern'} and $self->haveKernPairs()) {
+            if ($self->kernPairCid($lastglyph, $n)) {
+                $width -= $self->kernPairCid($lastglyph, $n);
+            }
+        }
+        $lastglyph = $n;
+	my $e = $glyphs->[$n];
+	warn("Missing glyph: $n\n"),next unless defined $e && %$e;
+	$e->read;
+	$xMin //= $e->{xMin};
+	$yMin = $e->{yMin} if !defined($yMin) || $e->{yMin} < $yMin;
+	$yMax = $e->{yMax} if !defined($yMax) || $e->{yMax} > $yMax;
+	$xMax = $e->{xMax};
+    }
+
+    if ( defined $lastwidth ) {
+	$xMax += $width - $lastwidth;
+	$_ *= $scale for $xMin, $xMax, $yMin, $yMax, $width, $bl;
+    }
+    else {
+	$xMin = $xMax = $yMin = $yMax = 0;
+    }
+
+    return { x	     => $xMin,
+	     y	     => $bl - $yMin,
+	     width   => $xMax - $xMin,
+	     height  => $yMax - $yMin,
+	     # These are for convenience
+	     xMin    => $xMin,
+	     yMin    => $yMin,
+	     xMax    => $xMax,
+	     yMax    => $yMax,
+	     wx	     => $width,
+	     bl      => $bl,
+	   };
+}
+
 ################ Extensions to PDF::Builder ################
 
 sub PDF::Builder::Content::glyph_by_CId {
