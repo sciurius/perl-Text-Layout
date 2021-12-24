@@ -108,7 +108,10 @@ sub setup_fonts {
 
     # Add Amiri (Arabic). Requires shaping.
     $fd->register_font( "amiri/amiri-regular.ttf",
-			"Amiri", "", "", { shaping => 1 } );
+			"Amiri", "", "",
+			{ shaping => 1,
+			  nosubset => 1,
+			} );
 
     my $o = { interline => 1 };
     $fd->register_font( "Helvetica", "Sanss", "", "", $o );
@@ -121,10 +124,9 @@ sub setup_fonts {
 # Setup the fonts.
 setup_fonts();
 
-if ( 1 ) {
+if ( @ARGV ) {
     # For compliancy, use Pango units;
-    $layout->set_pango_scale;
-    $PANGO_SCALE = 1000;
+    $PANGO_SCALE = $layout->set_pango_mode("on");
 }
 else {
     $PANGO_SCALE = 1;

@@ -540,10 +540,7 @@ sub set_markup {
 			#ok
 		    }
 		    elsif ( $v =~ /\d+(?:\.\d+)?$/ ) {
-			$fsiz = $self->{_pu2px}->($v);
-			if ( $self->{_pango_scale} ) {
-			    $fsiz *= PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS;
-			}
+			$fsiz = $self->_fsfix($v);
 		    }
 		    else {
 			carp("Invalid size: $v\n");
@@ -810,6 +807,19 @@ $description is a Text::Layout::FontConfig object.
 
 =cut
 
+sub _fsfix {
+    my ( $self, $sz ) = @_;
+    # Font sizes can be in either Pango units, or device units.
+    # Use heuristics.
+    if ( $sz > 2 * PANGO_SCALE ) { # Pango units
+	$sz /= PANGO_SCALE;
+    }
+    if ( $self->{_pango_scale} ) {
+	$sz /= PDF_DEVICE_UNITS / PANGO_DEVICE_UNITS;
+    }
+    return $sz;
+}
+
 sub set_font_description {
     my ( $self, $description ) = @_;
     my $o = "Text::Layout::FontDescriptor";
@@ -818,13 +828,7 @@ sub set_font_description {
 
     $self->{_currentfont}  = $description;
     if ( $description->{size} ) {
-	if ( $self->{_pango_scale} ) {
-	    $self->{_currentsize} = $self->{_pu2px}->($description->{size})
-	      * PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS;
-	}
-	else {
-	    $self->{_currentsize} = $self->{_pu2px}->($description->{size});
-	}
+	$self->{_currentsize} = $self->_fsfix($description->{size});
     }
     $self->{_currentcolor} = $description->{color} || "black";
     delete( $self->{_bbcache} );
@@ -1539,7 +1543,7 @@ Sets the size for the current font.
 
 sub set_font_size {
     my ( $self, $size ) = @_;
-    $self->{_currentsize} = $size;
+    $self->{_currentsize} = $self->_fsfiz($size);
     delete( $self->{_bbcache} );
 }
 

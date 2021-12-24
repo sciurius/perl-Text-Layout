@@ -3,6 +3,8 @@ Revision history for Text::Layout
 0.000
 
 	(Internal) Add extents method for CID fonts.
+	More Pango compatibility.
+	Add font properties direction and language.
 
 0.027	2021-12-23
 

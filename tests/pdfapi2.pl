@@ -27,7 +27,7 @@ my $PANGO_SCALE;
 
 sub main {
     # Select a font.
-    my $font = Text::Layout::FontConfig->from_string("Sanss 60");
+    my $font = Text::Layout::FontConfig->from_string("Sanss 45");
     $layout->set_font_description($font);
 
     # Start...
@@ -77,7 +77,8 @@ sub main {
     $font = Text::Layout::FontConfig->from_string("Deva 60");
     $layout->set_font_description($font);
     $layout->set_width( 595 * $PANGO_SCALE );
-    $layout->set_alignment("right");
+    # Nepali is LTR.
+    $layout->set_alignment("left");
 
     # This text consists of 6 characters but will render 4 glyphs.
     my $phrase =
@@ -128,8 +129,12 @@ sub setup_fonts {
     $fd->register_font( "DejaVuSans-BoldOblique.ttf", "Sans", "BoldItalic" );
 
     # Add Devanagari. Requires shaping.
+    # Note that Nepali is a LTR language.
     $fd->register_font( "lohit-devanagari/Lohit-Devanagari.ttf",
-			"Deva", "", "", { shaping => 1 } );
+			"Deva", "", "",
+			{ shaping => 1,
+			  language => 'nepali'
+			} );
 
     my $o = { interline => 1 };
     $fd->register_font( "Helvetica", "Sanss", "", "", $o );
@@ -142,10 +147,9 @@ sub setup_fonts {
 # Setup the fonts.
 setup_fonts();
 
-if ( 1 ) {
+if ( @ARGV ) {
     # For compliancy, use Pango units;
-    $layout->set_pango_scale;
-    $PANGO_SCALE = 1000;
+    $PANGO_SCALE = $layout->set_pango_mode("on");
 }
 else {
     $PANGO_SCALE = 1;

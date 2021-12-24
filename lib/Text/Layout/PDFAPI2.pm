@@ -43,17 +43,16 @@ sub _hb_init {
 # Verify if a font needs shaping, and we can do that.
 sub _hb_font_check {
     my ( $f ) = @_;
-    return if $f->{_hb_checked}++;
-#    use DDumper; DDumper($f);
+    return $f->{_hb_checked} if defined $f->{_hb_checked};
+
     if ( $f->get_shaping ) {
 	my $fn = $f->to_string;
 	if ( $f->{font}->can("fontfilename") ) {
 	    if ( _hb_init() ) {
 		# warn("Font $fn will use shaping.\n");
+		return $f->{_hb_checked} = 1;
 	    }
-	    else {
-		carp("Font $fn: Requires shaping but HarfBuzz cannot be loaded.");
-	    }
+	    carp("Font $fn: Requires shaping but HarfBuzz cannot be loaded.");
 	}
 	else {
 	    carp("Font $fn: Shaping not supported");
@@ -62,6 +61,7 @@ sub _hb_font_check {
     else {
 	# warn("Font ", $f->to_string, " does not need shaping.\n");
     }
+    return $f->{_hb_checked} = 0;
 }
 
 #### API
@@ -85,7 +85,6 @@ sub render {
 	}
     }
 
-    # $text->save;		# doesn't do anything
     foreach my $fragment ( @{ $self->{_content} } ) {
 	next unless length($fragment->{text});
 	my $x0 = $x;
@@ -101,18 +100,19 @@ sub render {
 	$text->fillcolor( $fragment->{color} );
 	$text->font( $font, $fragment->{size} || $self->{_currentsize} );
 
-	_hb_font_check($f);
-	if ( $hb && $font->can("fontfilename") ) {
+	if ( _hb_font_check($f) ) {
 	    $hb->set_font( $font->fontfilename );
 	    $hb->set_size( $fragment->{size} || $self->{_currentsize} );
 	    $hb->set_text( $fragment->{text} );
+	    $hb->set_direction( $f->{direction} ) if $f->{direction};
+	    $hb->set_language( $f->{language} ) if $f->{language};
 	    my $info = $hb->shaper($fp);
 	    my $y = $y - $fragment->{base} - $bl;
 	    foreach my $g ( @$info ) {
 		$text->translate( $x + $g->{dx}, $y - $g->{dy} );
 		$text->glyph_by_CId( $g->{g} );
 		$x += $g->{ax};
-		$y -= $g->{ay};
+		$y += $g->{ay};
 	    }
 	}
 	else {
@@ -230,10 +230,11 @@ sub bbox {
 	my $size = $_->{size};
 	my $base = $_->{base};
 
-	_hb_font_check( $f );
-	if ( $hb && $font->can("fontfilename") ) {
+	if ( _hb_font_check( $f ) ) {
 	    $hb->set_font( $font->fontfilename );
 	    $hb->set_size($size);
+	    $hb->set_language( $f->{language} ) if $f->{language};
+	    $hb->set_direction( $f->{direction} ) if $f->{direction};
 	    $hb->set_text( $_->{text} );
 	    my $info = $hb->shaper;
 	    foreach my $g ( @$info ) {
@@ -408,7 +409,7 @@ sub showbb {
 
     # Bounding box, top-left coordinates.
     my %e = %{($self->get_pixel_extents)[1]};
-    printf( "EXT: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
+#    printf( "EXT: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
 
     # NOTE: Some fonts include natural spacing in the bounding box.
     # NOTE: Some fonts exclude accents on capitals from the bounding box.
@@ -422,13 +423,13 @@ sub showbb {
     # Show baseline.
     _line( $gfx,
 	   $e{x}, -$self->get_pixel_bbox->[3],
-	   $e{width}-$e{x}, 0, $col );
+	   $e{width}, 0, $col );
 
     # Show bounding box.
     $gfx->linewidth( 0.25 );
     $gfx->strokecolor($col);
     $e{height} = -$e{height};		# PDF coordinates
-    $gfx->rectxy( $e{x}, $e{y}, $e{x} + $e{width}, $e{height} );;
+    $gfx->rect( $e{x}, $e{y}, $e{width}, $e{height} );;
     $gfx->stroke;
     $gfx->restore;
 }

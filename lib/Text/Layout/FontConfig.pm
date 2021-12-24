@@ -367,7 +367,7 @@ sub find_font {
 		return;
 	    }
 
-	    for ( qw( shaping interline nosubset
+	    for ( qw( shaping interline nosubset direction language
 		      underline_thickness underline_position
 		      strikeline_thickness strikeline_position
 		      overline_thickness overline_position

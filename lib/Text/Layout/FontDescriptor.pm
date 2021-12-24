@@ -147,6 +147,26 @@ sub get_size {
     $self->{size};
 }
 
+=item set_direction
+
+=item get_direction
+
+Sets/gets the direction property of the font.
+
+=back
+
+=cut
+
+sub set_direction {
+    my ( $self, $direction ) = @_;
+    $self->{direction} = $direction;
+}
+
+sub get_direction {
+    my ( $self ) = @_;
+    $self->{direction};
+}
+
 # Not documented -- internal use only.
 
 sub set_shaping {
