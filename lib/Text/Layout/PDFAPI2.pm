@@ -72,9 +72,9 @@ sub render {
     $self->{_lasty} = $y;
 
     my @bb = $self->get_pixel_bbox;
-    my $bl = $bb[3];
+    my $bl = $bb[0];
     if ( $self->{_width} && $self->{_alignment} ) {
-	my $w = $bb[2];
+	my $w = $bb[3];
 	if ( $w < $self->{_width} ) {
 	    if ( $self->{_alignment} eq "right" ) {
 		$x += $self->{_width} - $w;
@@ -216,8 +216,10 @@ sub render {
 
 #### API
 sub bbox {
-    my ( $self ) = @_;
-    my ( $x, $w, $d, $a ) = (0) x 4;
+    my ( $self, $all ) = @_;
+    my ( $bl, $x, $y, $w, $h ) = (0) x 4;
+    my ( $d, $a ) = (0) x 2;
+    my ( $xMin, $xMax, $yMin, $yMax );
     foreach ( @{ $self->{_content} } ) {
 	my $f = $_->{font};
 	my $font = $f->get_font($self);
@@ -230,6 +232,7 @@ sub bbox {
 	my $size = $_->{size};
 	my $base = $_->{base};
 
+	# Width and inkbox, if requested.
 	if ( _hb_font_check( $f ) ) {
 	    $hb->set_font( $font->fontfilename );
 	    $hb->set_size($size);
@@ -237,14 +240,58 @@ sub bbox {
 	    $hb->set_direction( $f->{direction} ) if $f->{direction};
 	    $hb->set_text( $_->{text} );
 	    my $info = $hb->shaper;
-	    foreach my $g ( @$info ) {
-		$w += $g->{ax};
+	    if ( $all ) {
+		my $ext = $hb->get_extents;
+		foreach my $g ( @$info ) {
+		    my $e = shift(@$ext);
+		    printf STDERR ( "G  %3d  %6.2f  %6.2f  %6.2f  %6.2f  %6.2f\n",
+				    $g->{g}, $g->{ax},
+				    @$e{ qw( x_bearing y_bearing width height ) } );
+		    # It is easier to work with the baseline oriented box.
+		    $e->{xMin} = $e->{x_bearing};
+		    $e->{yMin} = $e->{y_bearing} + $e->{height} - $base;
+		    $e->{xMax} = $e->{x_bearing} + $e->{width};
+		    $e->{yMax} = $e->{y_bearing} - $base;
+
+		    $xMin //= $w + $e->{xMin} if $e->{width};
+		    $yMin = $e->{yMin}
+		      if !defined($yMin) || $e->{yMin} < $yMin;
+		    $yMax = $e->{yMax}
+		      if !defined($yMax) || $e->{yMax} > $yMax;
+		    $xMax = $w + $e->{xMax};
+		    $w += $g->{ax};
+		}
+	    }
+	    else {
+		foreach my $g ( @$info ) {
+		    $w += $g->{ax};
+		}
+	    }
+	}
+	elsif ( $all && $font->can("extents") ) {
+	    my $e = $font->extents( $_->{text}, $size );
+	    printf STDERR ("(%.2f,%.2f)(%.2f,%.2f) -> ",
+			   $xMin//0, $yMin//0, $xMax//0, $yMax//0 ) if $all;
+	    $xMax = $w + $e->{xMax} if $all;
+	    $w += $e->{wx};
+#	    warn("W \"", $_->{text}, "\" $w, ", $e->{width}, "\n");
+	    if ( $all ) {
+		$_ -= $base for $e->{yMin}, $e->{yMax};
+		# Baseline oriented box.
+		$xMin //= $e->{xMin};
+		$yMin = $e->{yMin}
+		  if !defined($yMin) || $e->{yMin} < $yMin;
+		$yMax = $e->{yMax}
+		  if !defined($yMax) || $e->{yMax} > $yMax;
+		printf STDERR ("(%.2f,%.2f)(%.2f,%.2f)\n",
+			       $xMin//0, $yMin//0, $xMax//0, $yMax//0 );
 	    }
 	}
 	else {
 	    $w += $font->width( $_->{text} ) * $size;
 	}
 
+	# We have width. Now the rest of the layoutbox.
 	my ( $d0, $a0 );
 	if ( !$f->get_interline ) {
 	    # Use descender/ascender.
@@ -260,20 +307,28 @@ sub bbox {
 	    $d0 = $bb[1] - $base;
 	    $a0 = $bb[3] - $base;
 	}
+	# Keep track of biggest decender/ascender.
 	$d = $d0 if $d0 < $d;
 	$a = $a0 if $a0 > $a;
     }
+    $bl = $a;
+    $h = $a - $d;
 
     if ( $self->{_width} && $self->{_alignment} && $w < $self->{_width} ) {
 	if ( $self->{_alignment} eq "right" ) {
-	    $x += $self->{_width} - $w;
+	    $x += my $d = $self->{_width} - $w;
+	    $xMin += $d if defined $xMin;
+	    $xMax += $d if defined $xMax;
 	}
 	elsif ( $self->{_alignment} eq "center" ) {
-	    $x += ( $self->{_width} - $w ) / 2;
+	    $x += my $d = ( $self->{_width} - $w ) / 2;
+	    $xMin += $d if defined $xMin;
+	    $xMax += $d if defined $xMax;
 	}
     }
 
-    [ $x, $d, $w, $a ];
+    [ $bl, $x, $y-$h, $w, $h,
+      defined $xMin ? ( $xMin, $yMin-$bl, $xMax-$xMin, $yMax-$yMin ) : ()];
 }
 
 #### API
@@ -328,6 +383,7 @@ sub PDF::API2::Resource::CIDFont::TrueType::fontfilename {
 }
 
 # Add extents calculation for CIDfonts.
+# Note: Origin is x=0 at the baseline.
 sub PDF::API2::Resource::CIDFont::extents {
     my ( $self, $text, $size ) = @_;
     $size //= 1;
@@ -339,11 +395,17 @@ sub PDF::API2::Resource::CIDFont::extents_cid {
     my ( $self, $text, $size ) = @_;
     my $width = 0;
     my ( $xMin, $xMax, $yMin, $yMax, $bl );
+    my $upem = $self->data->{upem};
+    warn("UPEM: $upem\n");
     my $glyphs = $self->fontobj->{loca}->read->{glyphs};
     $bl = $self->ascender;
-    my $scale = ( $size || 1) / 1000;
     my $lastglyph = 0;
     my $lastwidth;
+
+    # Fun ahead! Widths are in 1000 and xMin and such in upem.
+    # Scale to 1000ths.
+    my $scale = 1000 / $upem;
+
     foreach my $n (unpack('n*', $text)) {
         $width += $lastwidth = $self->wxByCId($n);
         if ($self->{'-dokern'} and $self->haveKernPairs()) {
@@ -352,25 +414,39 @@ sub PDF::API2::Resource::CIDFont::extents_cid {
             }
         }
         $lastglyph = $n;
-	my $e = $glyphs->[$n];
-	warn("Missing glyph: $n\n"),next unless defined $e && %$e;
-	$e->read;
-	$xMin //= $e->{xMin};
+	my $ex = $glyphs->[$n];
+	unless ( defined $ex && %$ex ) {
+	    warn("Missing glyph: $n\n");
+	    next;
+	}
+	$ex->read;
+
+	my $e;
+	# Copy while scaling.
+	$e->{$_} = $ex->{$_} * $scale for qw( xMin yMin xMax yMax );
+
+	printf STDERR ( "G  %3d  %6.2f  %6.2f  %6.2f  %6.2f  %6.2f\n",
+			$n, $lastwidth,
+			@$e{ qw( xMin yMin xMax yMax ) } );
+
+	$xMin //= ($width - $lastwidth) + $e->{xMin};
 	$yMin = $e->{yMin} if !defined($yMin) || $e->{yMin} < $yMin;
 	$yMax = $e->{yMax} if !defined($yMax) || $e->{yMax} > $yMax;
-	$xMax = $e->{xMax};
+	$xMax = ($width - $lastwidth) + $e->{xMax};
     }
 
     if ( defined $lastwidth ) {
-	$xMax += $width - $lastwidth;
-	$_ *= $scale for $xMin, $xMax, $yMin, $yMax, $width, $bl;
+#	$xMax += ($width - $lastwidth);
     }
     else {
-	$xMin = $xMax = $yMin = $yMax = 0;
+	$xMin = $yMin = $xMax = $yMax = 0;
+	$width = $self->missingwidth;
     }
+    $_ = ($_//0)*$size/1000 for $xMin, $xMax, $yMin, $yMax, $bl;
+    $_ = ($_//0)*$size/1000 for $width;
 
     return { x	     => $xMin,
-	     y	     => $bl - $yMin,
+	     y	     => $yMin,
 	     width   => $xMax - $xMin,
 	     height  => $yMax - $yMin,
 	     # These are for convenience
@@ -407,9 +483,12 @@ sub showbb {
     $y //= $self->{_lasty};
     $col ||= "magenta";
 
+    my ( $ink, $bb ) = $self->get_pixel_extents;
+    my $bl = $bb->{bl};
     # Bounding box, top-left coordinates.
-    my %e = %{($self->get_pixel_extents)[1]};
-#    printf( "EXT: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
+    printf( "EX0: %.2f %.2f %.2f %.2f\n", @$ink{qw( x y width height )} );
+    printf( "EX1: %.2f %.2f %.2f %.2f  BL %.2f\n",
+	    @$bb{qw( x y width height )}, $bl );
 
     # NOTE: Some fonts include natural spacing in the bounding box.
     # NOTE: Some fonts exclude accents on capitals from the bounding box.
@@ -421,16 +500,29 @@ sub showbb {
     _showloc($gfx);
 
     # Show baseline.
-    _line( $gfx,
-	   $e{x}, -$self->get_pixel_bbox->[3],
-	   $e{width}, 0, $col );
+    _line( $gfx, $bb->{x}, -$bl, $bb->{width}, 0, $col );
+    $gfx->restore;
 
-    # Show bounding box.
+    # Show layout box.
+    $gfx->save;
     $gfx->linewidth( 0.25 );
     $gfx->strokecolor($col);
-    $e{height} = -$e{height};		# PDF coordinates
-    $gfx->rect( $e{x}, $e{y}, $e{width}, $e{height} );;
-    $gfx->stroke;
+    $gfx->translate( $x, $y );
+    for my $e ( $bb ) {
+	$gfx->rect( @$e{ qw( x y width height ) } );
+	$gfx->stroke;
+    }
+    $gfx->restore;
+
+    # Show ink box.
+    $gfx->save;
+    $gfx->linewidth( 0.25 );
+    $gfx->strokecolor("cyan");
+    $gfx->translate( $x, $y );
+    for my $e ( $ink ) {
+	$gfx->rect( @$e{ qw( x y width height ) } );
+	$gfx->stroke;
+    }
     $gfx->restore;
 }
 

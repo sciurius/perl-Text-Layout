@@ -2,9 +2,16 @@ Revision history for Text::Layout
 
 0.000
 
+	INCOMPATIBLE: the direction of rise and lower has been
+	reversed for more intuitive behaviour. Also (not intuitive but
+	Pango compatible) the amount specified is no longer
+	proportional to the font size. To compensate, you can use
+	percentages (convenience mode only).
+
 	(Internal) Add extents method for CID fonts.
 	More Pango compatibility.
 	Add font properties direction and language.
+	Add 'pt' postfix for point sizes in markup.
 
 0.027	2021-12-23
 

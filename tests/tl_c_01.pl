@@ -3,7 +3,7 @@
 # This is an example of using Text::Layout to create the same document
 # as native Pango.
 #
-# This example uses Text::Layout in Pango compliance mode. The
+# This example uses Text::Layout in Pango conformance mode. The
 # relevant parts of this program and its Pango counterpart are very
 # much the same.
 
@@ -16,21 +16,23 @@ use PDF::API2;
 use Text::Layout;
 
 # Create document and graphics environment.
-my $pdf = PDF::API2->new( file => 'pdfapi1.pdf' );
+my $pdf = PDF::API2->new( file => 'tl_c_01.pdf' );
 $pdf->mediabox( 595, 842 );	# A4
 
 # Set up page and get the text context.
 my $page = $pdf->page;
 my $text = $page->text;
+my $gfx  = $page->gfx;
 
 # Create a layout instance.
 my $layout = Text::Layout->new($pdf);
 
-# Tell Text::Layout that we are running in Pango compatibility.
-my $PANGO_SCALE = $layout->set_pango_mode("on");
+# Tell Text::Layout that we are running in convenience mode.
+# my $PANGO_SCALE = $layout->set_pango_mode(0);	# default
+my $PANGO_SCALE = $layout->get_pango_scale;
 
 # Scale from Cairo (PDF) font size to Pango.
-my $PANGO_FONT_SCALE = 0.75 * $PANGO_SCALE;
+my $PANGO_FONT_SCALE = 1 * $PANGO_SCALE;
 
 # Font sizes used, scaled.
 my $realfontsize = 60;
@@ -48,7 +50,21 @@ sub main {
     my $y = 500;		# PDF goes up
 
     # Text to render.
-    $layout->set_markup( qq{Áhe <i><span foreground="red">quick</span> <span size="$tinysize"><b>brown</b></span></i> fox} );
+    # Text to render.
+    my $txt = qq{ Áhe <i><span foreground="red">quick</span> }.
+      # $tinysize = 20 for a 20pt font.
+      qq{<span size="33.33%"><b>brown</b></span></i> }.
+      # rise is in points
+      qq{<span rise="10">fox</span>}.
+      # 200/1024 units of a 60pt font = 11.71875pt.
+      qq{<span rise="10pt" }.
+      # size=60 for a 60pt font.
+      qq{size="60">x</span>}.
+      # size=60pt for a 60pt font.
+      qq{<span rise="10pt" size="60pt">x</span> };
+    my $txt_nomarkup = "Áhe quick brown fox ";
+
+    $layout->set_markup($txt);
 
     # Left align text.
     $layout->set_width( 595 * $PANGO_SCALE );
@@ -70,8 +86,31 @@ sub main {
 
     # Plain PDF::API2, no Text::Layout.
     $text->font( $font->{font}, $realfontsize );
+    # PDF::API2 text is baseline oriented.
     $text->translate( $x, $y-50 );
-    $text->text(q{Áhe quick brown fox});
+    my $dx = $text->text($txt_nomarkup);
+    if ( $font->{font}->can("extents") ) {
+	my $e = $font->{font}->extents( $txt_nomarkup, $realfontsize );
+	printf( "EXT: %.2f %.2f %.2f %.2f\n", @$e{qw( x y width height )} );
+	$gfx->save;
+	$gfx->translate( $x, $y-50 );
+	# PDF::API2 text is baseline oriented, so are the extents.
+	# So we can draw the BB at the same origin as the text.
+	$gfx->rect( $e->{x}, $e->{y}, $e->{width}, $e->{height} );
+	$gfx->linewidth(0.5);
+	$gfx->strokecolor("cyan");
+	$gfx->stroke;
+	$gfx->restore;
+    }
+    # Draw baseline.
+    $gfx->save;
+    $gfx->translate( $x, $y-50 );
+    $gfx->move( 0, 0 );
+    $gfx->line( $dx, 0 );
+    $gfx->linewidth(0.5);
+    $gfx->strokecolor("magenta");
+    $gfx->stroke;
+    $gfx->restore;
 
     $y -= 100;
 
@@ -88,12 +127,9 @@ sub main {
 
 ################ Subroutines ################
 
-my $gfx;
-
 sub showlayout {
     my ( $x, $y ) = @_;
     $layout->show( $x, $y, $text);
-    $gfx //= $page->gfx;
     $layout->showbb($gfx);
 }
 
@@ -103,7 +139,13 @@ sub setup_fonts {
     # Add font dir and register fonts.
     $fd->add_fontdirs( $ENV{HOME}."/.fonts", "/usr/share/fonts/" );
     for ( "", qw( Bold Italic BoldItalic ) ) {
-	$fd->register_font( "FreeSerif$_.ttf", "freeserif", $_ );
+	$fd->register_font( "FreeSerif$_.ttf", "freeserif", $_,
+			  { shaping => 1 } );
+    }
+    for ( "Roman", qw( Bold Italic BoldItalic ) ) {
+	$fd->register_font( "Times-$_", "freeserixf",
+			    $_ eq "Roman" ? "" : $_,
+			  { shaping => 0 } );
     }
 }
 

@@ -122,15 +122,18 @@ C<15360> to get a 20pt font.
 
 =head1 SUPPORTED MARKUP
 
+Text::Layout recognizes most of the Pango markup as provided by the
+Pango library version 1.50 or newer. However, not everything is supported.
+
 =head2 Span attributes
 
 =over 8
 
-=item font_desc="I<DESC>"
+=item font="I<DESC>"   font_desc="I<DESC>"
 
 Specifies a font to be used, e.g. C<Serif 20>.
 
-=item font_face="I<FAM>"
+=item font_face="I<FAM>"   face="I<FAM>"
 
 Specifies a font family to be used.
 
@@ -138,23 +141,28 @@ Specifies a font family to be used.
 
 Same as font_face="I<FAM>".
 
-=item size=I<FNUM>
+=item size=I<FNUM>   size=I<FNUM>pt   size=I<FNUM>%
 
-Font size (integer, or fractional).
+Font size in 1024ths of a point (conformance mode), or in points (e.g.
+‘12.5pt’), or a percentage (e.g. ‘200%’), or one of the relative sizes
+‘smaller’ or ‘larger’.
 
-=item style="I<STYLE>"
+Note that in Pango conformance mode, the actual font size is 96/72
+larger. So C<"45pt"> gives a 60pt font.
+
+=item style="I<STYLE>"   font_style="I<STYLE>"
 
 Specifes the font style, e.g. C<italic>.
 
-=item weight="I<WEIGHT>"
+=item weight="I<WEIGHT>"   font_weight="I<WEIGHT>"
 
 Specifies the font weight, e.g. C<bold>.
 
-=item foreground="I<COLOR>"
+=item foreground="I<COLOR>"   fgcolor="I<COLOR>"   color="I<COLOR>"
 
 Specifies the foreground colour, e.g. C<black>.
 
-=item background="I<COLOR>"
+=item background="I<COLOR>"   bgcolor="I<COLOR>"
 
 Specifies the background colour, e.g. C<white>.
 
@@ -185,9 +193,21 @@ enable, and C<false> or C<0> to disable.
 
 The colour to be used for striking, if enabled.
 
-=item rise=C<NUM>
+=item rise=C<NUM>   rise=C<NUM>pt   rise=C<NUM>%
 
-Rises the text by I<NUM> units. May be negative to lower the text.
+Rises the text by I<NUM> units from the baseline.
+May be negative to lower the text.
+
+Units are points if postfixed by B<pt>, otherwise Pango units (yes,
+even when in convenience mode).
+
+For best results, use a percentage since this scales with the font size.
+
+Note: C<rise> does not accumulate. Use C<baseline_shift> instead.
+
+=item bseline_shift=C<NUM>   beseline_shift=C<NUM>pt   baseline_shift=C<NUM>%
+
+Like C<rise>, but accumulates.
 
 =back
 
@@ -237,11 +257,11 @@ weight=bold
 
 =item sub
 
-size=smaller rise=300
+size=smaller rise=-30%
 
 =item sup
 
-size=smaller rise=-300
+size=smaller rise=30%
 
 =item tt
 
@@ -305,7 +325,7 @@ sub new {
 	    _content => [],
 	    _px2pu   => \&px2pu,
 	    _pu2px   => \&pu2px,
-	    _pango_scale => 0,
+	    _pango   => 0,
 	  } => $pkg;
 }
 
@@ -461,13 +481,15 @@ use Text::ParseWords;
 use constant STEP => 0.8;	# TODO: Optimal value?
 
 my %magstep =
-  ( "xx-small"	=> 1.0*STEP*STEP*STEP,
-    "x-small"	=> 1.0*STEP*STEP,
-    "small"	=> 1.0*STEP,
-    "medium"	=> 1.0,
-    "large"	=> 1.0/STEP,
-    "x-large"	=> 1.0/(STEP*STEP),
-    "xx-large"  => 1.0/(STEP*STEP*STEP),
+  ( # "xx-small"	=> 1.0*STEP*STEP*STEP,
+    # "x-small"	=> 1.0*STEP*STEP,
+    # "small"	=> 1.0*STEP,
+    "smaller"	=> 1.0*STEP,
+    # "medium"	=> 1.0,
+    # "large"	=> 1.0/STEP,
+    "larger"	=> 1.0/STEP,
+    # "x-large"	=> 1.0/(STEP*STEP),
+    # "xx-large"  => 1.0/(STEP*STEP*STEP),
   );
 
 sub set_markup {
@@ -522,25 +544,38 @@ sub set_markup {
 		# $v =~ s/^(["'])(.*)\1$/$2/;
 
 		# <span font_desc="Sans 20">
-		if ( $k =~ /^(font_desc)$/ ) {
+		if ( $k =~ /^(font|font_desc)$/ ) {
 		    $fcur = Text::Layout::FontConfig->from_string($v);
 		    $fsiz = $fcur->get_size if $fcur->get_size;
 		}
 
 		# <span face="Sans">
-		elsif ( $k =~ /^(face|font_family)$/ ) {
+		elsif ( $k =~ /^(face|font_face|font_family)$/ ) {
 		    $fcur = Text::Layout::FontConfig->find_font( $v,
 								 $fcur->{style},
 								 $fcur->{weight});
 		}
 
 		# <span size=20>
-		elsif ( $k eq "size" ) {
+		elsif ( $k =~ /^(size|font_size)$/ ) {
 		    if ( $try_size->($v) ) {
 			#ok
 		    }
+		    elsif ( $v =~ /(\d+(?:\.\d+)?)pt$/ ) {
+			$fsiz = $self->{_pango}
+			  ? $1 * PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS
+			  : $1;
+			warn("fsiz \"$v\" -> $fsiz\n");
+		    }
 		    elsif ( $v =~ /\d+(?:\.\d+)?$/ ) {
-			$fsiz = $self->_fsfix($v);
+			$fsiz = $self->{_pango}
+			  ? $v * PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS / PANGO_SCALE
+			  : $v;
+			warn("fsiz \"$v\" -> $fsiz\n");
+		    }
+		    elsif ( $v =~ /(\d+(?:\.\d+)?)\%$/ ) {
+			$fsiz *= $1 / 100;
+			warn("fsiz \"$v\" -> $fsiz\n");
 		    }
 		    else {
 			carp("Invalid size: $v\n");
@@ -548,14 +583,14 @@ sub set_markup {
 		}
 
 		# <span style="Italic">
-		elsif ( $k eq "style" ) {
+		elsif ( $k =~ /^(style|font_style)$/ ) {
 		    $v = Text::Layout::FontConfig::_norm_style($v);
 		    $fcur = Text::Layout::FontConfig->find_font( $fcur->{family},
 					      $v, $fcur->{weight} );
 		}
 
 		# <span weight="bold">
-		elsif ( $k eq "weight" ) {
+		elsif ( $k =~ /^(weight|font_weight)$/ ) {
 		    $v = Text::Layout::FontConfig::_norm_weight($v);
 		    $fcur = Text::Layout::FontConfig->find_font( $fcur->{family},
 					      $fcur->{style}, $v );
@@ -563,18 +598,20 @@ sub set_markup {
 
 		# <span variant="...">
 		# <span stretch="...">
-		elsif ( $k =~ /^(variant|stretch)$/ ) {
+		elsif ( $k =~ /^(?:font_)?(variant|stretch)$/ ) {
+		    # ignore for now
+		}
+		elsif ( $k =~ /^(features|background_alpha|alpha)$/ ) {
 		    # ignore for now
 		}
 
 		# <span foreground="red">
-		# We allow 'color' as an alternative.
-		elsif ( $k =~ /^(foreground|color)$/ ) {
+		elsif ( $k =~ /^(foreground|fgcolor|color)$/ ) {
 		    $fcol = $v;
 		}
 
 		# <span background="red">
-		elsif ( $k eq "background" ) {
+		elsif ( $k =~ /^(background|bgcolor)$/ ) {
 		    # NYI.
 		}
 
@@ -596,7 +633,30 @@ sub set_markup {
 
 		# <span rise=324>
 		elsif ( $k eq "rise" ) {
-		    $base += $v / 1024 * $fsiz;
+		    if ( $v =~ /^(-?\d+(?:\.\d*)?)pt$/ ) {
+			$base = $1;
+		    }
+		    elsif ( !$self->{_pango} && $v =~ /^(-?\d+(?:\.\d*)?)\%$/ ) {
+			$base = $1 * $fsiz / 100;
+		    }
+		    else {
+			$base = $self->{_pango} ? $v / PANGO_SCALE : $v;
+		    }
+		    $base = -$base;
+		}
+
+		# <span baseline_shift=324>
+		# Line rise, but accumulate.
+		elsif ( $k eq "baseline_shift" ) {
+		    if ( $v =~ /^(-?\d+(?:\.\d*)?)pt$/ ) {
+			$base -= $1;
+		    }
+		    elsif ( $v =~ /^(-?\d+(?:\.\d*)?)\%$/ ) {
+			$base -= $1 * $fsiz / 100;
+		    }
+		    else {
+			$base -= $self->{_pango} ? $v / PANGO_SCALE : $v;
+		    }
 		}
 
 		# <span strikethrough=false>
@@ -701,12 +761,12 @@ sub set_markup {
 
 	    # <sub>
 	    elsif ( $k eq "sub" ) {
-		$span->("size=smaller rise=300");
+		$span->("size=smaller rise=-30%");
 	    }
 
 	    # <sup>
 	    elsif ( $k eq "sup" ) {
-		$span->("size=smaller rise=-300");
+		$span->("size=smaller rise=30%");
 	    }
 
 	    # <small>
@@ -807,19 +867,6 @@ $description is a Text::Layout::FontConfig object.
 
 =cut
 
-sub _fsfix {
-    my ( $self, $sz ) = @_;
-    # Font sizes can be in either Pango units, or device units.
-    # Use heuristics.
-    if ( $sz > 2 * PANGO_SCALE ) { # Pango units
-	$sz /= PANGO_SCALE;
-    }
-    if ( $self->{_pango_scale} ) {
-	$sz /= PDF_DEVICE_UNITS / PANGO_DEVICE_UNITS;
-    }
-    return $sz;
-}
-
 sub set_font_description {
     my ( $self, $description ) = @_;
     my $o = "Text::Layout::FontDescriptor";
@@ -827,10 +874,22 @@ sub set_font_description {
       unless UNIVERSAL::isa( $description, $o );
 
     $self->{_currentfont}  = $description;
-    if ( $description->{size} ) {
-	$self->{_currentsize} = $self->_fsfix($description->{size});
+
+    if ( my $sz = $description->{size} ) {
+	# Font sizes can be in either Pango units, or device units.
+	# Use heuristics.
+	if ( $sz > 2 * PANGO_SCALE ) { # Pango units
+	    $sz /= PANGO_SCALE;
+	}
+	if ( $self->{_pango} ) {
+	    # Pango uses 96dpi while PDF is 72dpi.
+	    $sz *= PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS;
+	}
+	$self->{_currentsize} = $sz;
     }
+
     $self->{_currentcolor} = $description->{color} || "black";
+
     delete( $self->{_bbcache} );
 }
 
@@ -1368,6 +1427,8 @@ aligned text, it will be the width of the layout.
 C<y> will reflect the offset when text is centered vertically or
 bottom aligned. It will be zero for top aligned text.
 
+See also get_pixel_extents below.
+
 Implementation note: If the PDF::API support layer cannot calculate ink,
 this function returns two identical extents.
 
@@ -1379,13 +1440,15 @@ sub get_extents {
     my ( $self ) = @_;
     my $need_ink = wantarray;
 
-    my @bb = @{ $self->get_bbox($need_ink) };
-    my $res = { x     => $bb[0], y      => 0,
-		width => $bb[2], height => $bb[3]-$bb[1] };
+    my @bb = $self->get_bbox($need_ink);
+    my $res = { bl    => $bb[0],
+		x     => $bb[1], y      => $bb[2],
+		width => $bb[3], height => $bb[4] };
     my $ink = $res;
-    if ( @bb > 4 ) {
-	$ink = { x     => $bb[4], y      => $bb[5],
-		 width => $bb[6], height => $bb[7]-$bb[5] };
+    if ( @bb > 5 ) {
+	$ink = { bl    => $bb[0],
+		 x     => $bb[5], y      => $bb[6],
+		 width => $bb[7], height => $bb[8] };
     }
     return $need_ink ? ( $ink, $res ) : $res;
 }
@@ -1396,6 +1459,15 @@ sub get_extents {
 
 Same as get_extents, but using device units.
 
+The returned values are suitable for (assuming $pdf_text and
+$pdf_gfx are the PDF text and graphics contexts):
+
+    $layout->render( $x, $y, $pdf_text );
+    $box = $layout->get_pixel_extents;
+    $pdf_gfx->translate( $x, $y );
+    $pdf_gfx->rect( @$box{ qw( x y width height ) } );
+    $pdf_gfx->stroke;
+
 =back
 
 =cut
@@ -1405,13 +1477,15 @@ sub get_pixel_extents {
 
     my $need_ink = wantarray;
 
-    my @bb = @{ $self->get_pixel_bbox($need_ink) };
-    my $res = { x     => $bb[0], y      => 0,
-		width => $bb[2], height => $bb[3]-$bb[1] };
+    my @bb = $self->get_pixel_bbox($need_ink);
+    my $res = { bl    => $bb[0],
+		x     => $bb[1], y      => $bb[2],
+		width => $bb[3], height => $bb[4] };
     my $ink = $res;
-    if ( @bb > 4 ) {
-	$ink = { x     => $bb[4], y      => $bb[5],
-		 width => $bb[6], height => $bb[7]-$bb[5] };
+    if ( @bb > 5 ) {
+	$ink = { bl    => $bb[0],
+		 x     => $bb[5], y      => $bb[6],
+		 width => $bb[7], height => $bb[8] };
     }
     return $need_ink ? ( $ink, $res ) : $res;
 }
@@ -1492,7 +1566,7 @@ See get_iter().
 
 sub get_baseline {
     my ( $self ) = @_;
-    return -$self->get_bbox->[3];
+    return -$self->get_bbox->[0];
 }
 
 =head1 METHODS NOT IMPLEMENTED
@@ -1537,6 +1611,9 @@ The following methods are not part of the Pango API.
 
 Sets the size for the current font.
 
+Note that in Pango conformance mode, the actual font size is 96/72
+larger. So C<48000> gives a 60pt font.
+
 =back
 
 =cut
@@ -1566,33 +1643,22 @@ sub get_font_size {
 
 =item get_bbox
 
-Returns the bounding box of the text, w.r.t. the origin.
+Returns the bounding box of the text, w.r.t. the (top-left) origin.
 
-     +-----------+   ascend
-     |           |
-     |           |
-     |           |
-     |           |
-     |           |
-     | <-width-> |
-     |           |
-     |           |
-     o-----------+   o = origin baseline
-     |           |
-     |           |
-     +-----------+   descend
+bb = ( bl, x, y, width, height )
 
-bb = ( left, descend, right, ascend )
+bb[0] = baseline distance from the top.
 
-bb[0] = left is nonzero for centered and right aligned text
+bb[1] = displacement from the left, nonzero for centered and right aligned text
 
-bb[1] = descend is a negative value
+bb[2] = displacement from the top, usually zero
 
-bb[2] - bb[0] = advancewidth
+bb[3] = advancewidth
 
-bb[2] = layout width for right aligned text
+bb[4] = height
 
-bb[3] = ascend is a positive value
+Note that the bounding box will in general be equal to the font
+bounding box except for the advancewidth.
 
 NOTE: Some fonts do not include accents on capital letters in the ascend.
 
@@ -1611,7 +1677,7 @@ sub get_pixel_bbox {
     my ( $self, $all ) = @_;
     my $res;
     if ( $self->{_bbcache}
-	 && @{ $self->{_bbcache} } == ($all ? 8 : 4) ) {
+	 && @{ $self->{_bbcache} } == ($all ? 9 : 5) ) {
 	$res = $self->{_bbcache};
     }
     else {
@@ -1660,25 +1726,40 @@ Returns the internal Pango scaling factor if enabled.
 =cut
 
 sub set_pango_mode {
-    my ( $self, $enable ) = @_;
-    if ( $enable ) {
+    my ( $self, $conformant ) = @_;
+
+    if ( $conformant ) {
+	delete( $self->{_bbcache} ) unless $self->{_pango};
 	$self->{_px2pu} = sub { $_[0] * PANGO_SCALE };
 	$self->{_pu2px} = sub { $_[0] / PANGO_SCALE };
-	return $self->{_pango_scale} = PANGO_SCALE;
+	return $self->{_pango} = PANGO_SCALE;
     }
 
+    delete( $self->{_bbcache} ) if $self->{_pango};
     $self->{_px2pu} = \&px2pu;
     $self->{_pu2px} = \&pu2px;
-    delete( $self->{_bbcache} );
-    return $self->{_pango_scale} = 0;
+    return $self->{_pango} = 0;
 }
 
 # Legacy.
 *set_pango_scale = \&set_pango_mode;
 
+=over
+
+=item get_pango
+
+See L<Pango Conformance Mode>.
+
+Returns the internal Pango scaling factor if conformance mode is
+enabled, otherwise it returns 1 (one).
+
+=back
+
+=cut
+
 sub get_pango_scale {
     my ( $self ) = @_;
-    $self->{_pango_scale} ? PANGO_SCALE : 1;
+    $self->{_pango} ? PANGO_SCALE : 1;
 }
 
 sub nyi {

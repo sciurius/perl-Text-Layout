@@ -19,6 +19,7 @@ $pdf->mediabox( 595, 842 );	# A4
 # Set up page and get the text context.
 my $page = $pdf->page;
 my $text = $page->text;
+my $gfx  = $page->gfx;
 
 # Create a layout instance.
 my $layout = Text::Layout->new($pdf);
@@ -27,7 +28,7 @@ my $PANGO_SCALE;
 
 sub main {
     # Select a font.
-    my $font = Text::Layout::FontConfig->from_string("Sanss 45");
+    my $font = Text::Layout::FontConfig->from_string("Sans 44");
     $layout->set_font_description($font);
 
     # Start...
@@ -35,7 +36,7 @@ sub main {
     my $y = 700;
 
     # Text to render.
-    $layout->set_markup( q{Áhe <i><span foreground="red">quick</span> <span size="20"><b>brown</b></span></i> fox} );
+    $layout->set_markup( q{ Áhe <i><span foreground="red">quick</span> <span size="20"><b>brown</b></span></i> fox } );
 
     # Left align text.
     $layout->set_width( 595 * $PANGO_SCALE );
@@ -49,15 +50,39 @@ sub main {
     # Right align text.
     $layout->set_width( 595 * $PANGO_SCALE );
     $layout->set_alignment("right");
+    $layout->set_alignment("left");
 
     # Render it.
     showlayout( $x, $y );
 
     $y -= 100;
 
-    $text->font( $font->{font}, 60);
+    $text->font( $font->{font}, 44);
     $text->translate( $x, $y-50 );
-    $text->text(q{Áhe quick brown fox});
+    my $txt_nomarkup = q{Áhe quick brown fox};
+    my $dx = $text->text($txt_nomarkup);
+    if ( $font->{font}->can("extents") ) {
+	my $e = $font->{font}->extents( $txt_nomarkup, 44 );
+	printf( "EXT: %.2f %.2f %.2f %.2f\n", @$e{qw( x y width height )} );
+	$gfx->save;
+	$gfx->translate( $x, $y-50 );
+	# PDF::API2 text is baseline oriented, so are the extents.
+	# So we can draw the BB at the same origin as the text.
+	$gfx->rect( $e->{x}, $e->{y}, $e->{width}, $e->{height} );
+	$gfx->linewidth(0.5);
+	$gfx->strokecolor("cyan");
+	$gfx->stroke;
+	$gfx->restore;
+    }
+    # Draw baseline.
+    $gfx->save;
+    $gfx->translate( $x, $y-50 );
+    $gfx->move( 0, 0 );
+    $gfx->line( $dx, 0 );
+    $gfx->linewidth(0.5);
+    $gfx->strokecolor("magenta");
+    $gfx->stroke;
+    $gfx->restore;
 
     $y -= 100;
 
@@ -87,22 +112,20 @@ sub main {
       "\N{DEVANAGARI VOWEL SIGN AA}".
       "\N{DEVANAGARI LETTER NGA}".
       "\N{DEVANAGARI SIGN VIRAMA}".
-      "\N{DEVANAGARI LETTER GA}";
+      "\N{DEVANAGARI LETTER GA}".
+      qq{ <span font="sans 20"> this should look like THIS};
     $layout->set_markup($phrase);
     showlayout( $x, $y );
 
     # Ship out.
-    $pdf->saveas("pdfapi2.pdf");
+    $pdf->saveas("tl_c_02.pdf");
 }
 
 ################ Subroutines ################
 
-my $gfx;
-
 sub showlayout {
     my ( $x, $y ) = @_;
     $layout->show( $x, $y, $text);
-    $gfx //= $page->gfx;
     $layout->showbb($gfx);
 }
 
