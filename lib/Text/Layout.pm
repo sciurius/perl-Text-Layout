@@ -1611,16 +1611,13 @@ The following methods are not part of the Pango API.
 
 Sets the size for the current font.
 
-Note that in Pango conformance mode, the actual font size is 96/72
-larger. So C<48000> gives a 60pt font.
-
 =back
 
 =cut
 
 sub set_font_size {
     my ( $self, $size ) = @_;
-    $self->{_currentsize} = $self->_fsfiz($size);
+    $self->{_currentsize} = $size;
     delete( $self->{_bbcache} );
 }
 
