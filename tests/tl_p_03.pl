@@ -45,12 +45,13 @@ $layout->set_alignment("left");
 # characteristics of the text.
 
 $layout->set_markup("abc");
-showlayout( $x, $y );
-$x += ($layout->get_size)[0]/$PANGO_SCALE;
+$x += showlayout( $x, $y );
 
 $layout->set_markup( q{برنامج أهلا بالعالم} );
-showlayout( $x, $y );
-$x += ($layout->get_size)[0]/$PANGO_SCALE;
+
+# Arabic is RTL, restrict to actual width to prevent unwanted alignment.
+$layout->set_width( ($layout->get_size)[0] / $PANGO_SCALE );
+$x += showlayout( $x, $y );
 
 $layout->set_markup("xyz");
 showlayout( $x, $y );
@@ -75,8 +76,10 @@ my $gfx;
 sub showlayout {
     my ( $x, $y ) = @_;
     $layout->show( $x, $y, $text);
+    my $dx = ($layout->get_size)[0] / $PANGO_SCALE;
     $gfx //= $page->gfx;
     $layout->showbb($gfx);
+    return $dx;
 }
 
 sub setup_fonts {

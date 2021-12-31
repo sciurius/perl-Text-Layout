@@ -38,8 +38,8 @@ $layout->set_markup("abc");
 $x += showlayout( $cr, $layout, $x, $y );
 
 $layout->set_markup( q{برنامج أهلا بالعالم} );
-my $dx = ($layout->get_size)[0];
-$layout->set_width($dx);
+# Arabic is RTL, restrict to actual width to prevent unwanted alignment.
+$layout->set_width( ($layout->get_size)[0] );
 $x += showlayout( $cr, $layout, $x, $y );
 
 $layout->set_markup("xyz");

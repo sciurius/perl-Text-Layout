@@ -73,14 +73,18 @@ sub render {
 
     my @bb = $self->get_pixel_bbox;
     my $bl = $bb[0];
-    if ( $self->{_width} && $self->{_alignment} ) {
+    my $align = $self->{_alignment} // 0;
+    if ( $self->{_width} ) {
 	my $w = $bb[3];
 	if ( $w < $self->{_width} ) {
-	    if ( $self->{_alignment} eq "right" ) {
+	    if ( $align eq "right" ) {
 		$x += $self->{_width} - $w;
 	    }
-	    elsif ( $self->{_alignment} eq "center" ) {
+	    elsif ( $align eq "center" ) {
 		$x += ( $self->{_width} - $w ) / 2;
+	    }
+	    else {
+		$x += $bb[1];
 	    }
 	}
     }
@@ -217,9 +221,12 @@ sub render {
 #### API
 sub bbox {
     my ( $self, $all ) = @_;
+
     my ( $bl, $x, $y, $w, $h ) = (0) x 4;
     my ( $d, $a ) = (0) x 2;
     my ( $xMin, $xMax, $yMin, $yMax );
+    my $dir;
+
     foreach ( @{ $self->{_content} } ) {
 	my $f = $_->{font};
 	my $font = $f->get_font($self);
@@ -231,6 +238,7 @@ sub bbox {
 	my $upem = 1000;	# as delivered by PDF::API2
 	my $size = $_->{size};
 	my $base = $_->{base};
+	my $mydir = $f->{direction} || 'ltr';
 
 	# Width and inkbox, if requested.
 	if ( _hb_font_check( $f ) ) {
@@ -240,6 +248,9 @@ sub bbox {
 	    $hb->set_direction( $f->{direction} ) if $f->{direction};
 	    $hb->set_text( $_->{text} );
 	    my $info = $hb->shaper;
+	    $mydir = $hb->get_direction;
+	    warn("mydir $mydir\n");
+
 	    if ( $all ) {
 		my $ext = $hb->get_extents;
 		foreach my $g ( @$info ) {
@@ -310,17 +321,26 @@ sub bbox {
 	# Keep track of biggest decender/ascender.
 	$d = $d0 if $d0 < $d;
 	$a = $a0 if $a0 > $a;
+
+	# Direction.
+	$dir //= $mydir;
+	$dir = 0 unless $dir eq $mydir; # mix
     }
     $bl = $a;
     $h = $a - $d;
 
-    if ( $self->{_width} && $self->{_alignment} && $w < $self->{_width} ) {
-	if ( $self->{_alignment} eq "right" ) {
+    my $align = $self->{_alignment};
+    if ( $self->{_width} && $dir && $w < $self->{_width} ) {
+	if ( $dir eq 'ltr' ) { $align = "left" }
+	elsif ( $dir eq 'rtl' ) { $align = "right" }
+    }
+    if ( $self->{_width} && $align && $w < $self->{_width} ) {
+	if ( $align eq "right" ) {
 	    $x += my $d = $self->{_width} - $w;
 	    $xMin += $d if defined $xMin;
 	    $xMax += $d if defined $xMax;
 	}
-	elsif ( $self->{_alignment} eq "center" ) {
+	elsif ( $align eq "center" ) {
 	    $x += my $d = ( $self->{_width} - $w ) / 2;
 	    $xMin += $d if defined $xMin;
 	    $xMax += $d if defined $xMax;
@@ -395,8 +415,8 @@ sub PDF::API2::Resource::CIDFont::extents_cid {
     my ( $self, $text, $size ) = @_;
     my $width = 0;
     my ( $xMin, $xMax, $yMin, $yMax, $bl );
+
     my $upem = $self->data->{upem};
-    warn("UPEM: $upem\n");
     my $glyphs = $self->fontobj->{loca}->read->{glyphs};
     $bl = $self->ascender;
     my $lastglyph = 0;
