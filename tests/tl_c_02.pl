@@ -50,7 +50,6 @@ sub main {
     # Right align text.
     $layout->set_width( 595 * $PANGO_SCALE );
     $layout->set_alignment("right");
-    $layout->set_alignment("left");
 
     # Render it.
     showlayout( $x, $y );

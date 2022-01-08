@@ -55,8 +55,8 @@ sub main {
       # $tinysize = 20 for a 20pt font.
       qq{<span size="33.33%"><b>brown</b></span></i> }.
       # rise is in points
-      qq{<span rise="10">fox</span>}.
-      # 200/1024 units of a 60pt font = 11.71875pt.
+      qq{<span rise="-170.667">fox</span>}.
+      # 170.667/1024 units of a 60pt font = 10pt.
       qq{<span rise="10pt" }.
       # size=60 for a 60pt font.
       qq{size="60">x</span>}.
@@ -140,7 +140,7 @@ sub setup_fonts {
     $fd->add_fontdirs( $ENV{HOME}."/.fonts", "/usr/share/fonts/" );
     for ( "", qw( Bold Italic BoldItalic ) ) {
 	$fd->register_font( "FreeSerif$_.ttf", "freeserif", $_,
-			  { shaping => 1 } );
+			  { shaping => 0 } );
     }
     for ( "Roman", qw( Bold Italic BoldItalic ) ) {
 	$fd->register_font( "Times-$_", "freeserixf",

@@ -330,17 +330,23 @@ sub bbox {
     $h = $a - $d;
 
     my $align = $self->{_alignment};
+    # warn("ALIGN: ", $align//"<unset>","\n");
     if ( $self->{_width} && $dir && $w < $self->{_width} ) {
-	if ( $dir eq 'ltr' ) { $align = "left" }
-	elsif ( $dir eq 'rtl' ) { $align = "right" }
+	if ( $dir eq 'rtl' && (!$align || $align eq "left") ) {
+	    $align = "right";
+	    # warn("ALIGN: set to $align\n");
+	}
     }
     if ( $self->{_width} && $align && $w < $self->{_width} ) {
+	# warn("ALIGNING...\n");
 	if ( $align eq "right" ) {
+	    # warn("ALIGNING: to $align\n");
 	    $x += my $d = $self->{_width} - $w;
 	    $xMin += $d if defined $xMin;
 	    $xMax += $d if defined $xMax;
 	}
 	elsif ( $align eq "center" ) {
+	    # warn("ALIGNING: to $align\n");
 	    $x += my $d = ( $self->{_width} - $w ) / 2;
 	    $xMin += $d if defined $xMin;
 	    $xMax += $d if defined $xMax;
@@ -506,8 +512,9 @@ sub showbb {
     my ( $ink, $bb ) = $self->get_pixel_extents;
     my $bl = $bb->{bl};
     # Bounding box, top-left coordinates.
-    printf( "EX0: %.2f %.2f %.2f %.2f\n", @$ink{qw( x y width height )} );
-    printf( "EX1: %.2f %.2f %.2f %.2f  BL %.2f\n",
+    printf( "Ink:    %6.2f %6.2f %6.2f %6.2f\n",
+	    @$ink{qw( x y width height )} );
+    printf( "Layout: %6.2f %6.2f %6.2f %6.2f  BL %.2f\n",
 	    @$bb{qw( x y width height )}, $bl );
 
     # NOTE: Some fonts include natural spacing in the bounding box.

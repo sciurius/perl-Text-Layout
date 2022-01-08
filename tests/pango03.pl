@@ -22,24 +22,28 @@ $layout->set_font_description($font);
 
 # Start...
 my $x = 0;
-my $y = 842-600;
+my $y = 842-700;
 
 # Left align text.
 $layout->set_width( 595 * $PANGO_SCALE );
 $layout->set_alignment("left");
 
+# Arabic is RTL, so it comes out as right aligned.
+$layout->set_markup( q{برنامج أهلا بالعالم} );
+showlayout( $cr, $layout, $x, $y );
+
+$y += 100;
+
 # Typeset in three parts. Note that parts 1 and 3 will be ltr,
 # and part 2 will be rtl.
-# Note, however, that this currently relies on the native
-# harfbuzz library to correctly determine ('guess') the
-# characteristics of the text.
 
 $layout->set_markup("abc");
 $x += showlayout( $cr, $layout, $x, $y );
 
 $layout->set_markup( q{برنامج أهلا بالعالم} );
 # Arabic is RTL, restrict to actual width to prevent unwanted alignment.
-$layout->set_width( ($layout->get_size)[0] );
+my $dx = ($layout->get_size)[0];
+$layout->set_width($dx);
 $x += showlayout( $cr, $layout, $x, $y );
 
 $layout->set_markup("xyz");

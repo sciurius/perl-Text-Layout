@@ -14,9 +14,9 @@ sub showlayout {
     $layout = $_layout;
     $cr->move_to( $x, $y );
     $cr->set_source_rgba( 0, 0, 0, 1 );
-    Pango::Cairo::show_layout($cr, $layout);
+    Pango::Cairo::show_layout( $cr, $layout );
     my $dx = ($layout->get_size)[0]/$PANGO_SCALE;
-    showbb( $x, $y, "magenta" );
+    showbb( $x, $y );
     return $dx;
 }
 
@@ -28,10 +28,12 @@ sub showbb {
     _showloc( $x, $y );
 
     # Bounding box, top-left coordinates.
-    my %e = %{($layout->get_pixel_extents)[0]};
-    printf( "EX1: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
-    %e = %{$layout->get_pixel_extents};
-    printf( "EX0: %.2f %.2f %.2f %.2f\n", @e{qw( x y width height )} );
+    my @e = $layout->get_pixel_extents;
+    for ( 1, 0 ) {
+	printf( "%-7s %6.2f %6.2f %6.2f %6.2f\n",
+		(qw(Ink: Layout:))[$_],
+		@{%{e[$_]}}{qw( x y width height )} );
+    }
 
     # NOTE: Some fonts include natural spacing in the bounding box.
     # NOTE: Some fonts exclude accents on capitals from the bounding box.
@@ -42,12 +44,12 @@ sub showbb {
     $cr->set_line_width( 0.25 );
     $cr->translate( $x, $y );
 
+    my %e = %{$e[1]};
     _line( $e{x}, $layout->get_baseline/$PANGO_SCALE, $e{width}, 0 );
-
     # Show BBox.
     $cr->rectangle( $e{x}, $e{y}, $e{width}, $e{height} );;
     $cr->stroke;
-    %e = %{($layout->get_pixel_extents)[0]};
+    %e = %{$e[0]};
     $cr->set_source_rgb(0,1,1);
     $cr->rectangle( $e{x}, $e{y}, $e{width}, $e{height} );;
     $cr->stroke;

@@ -193,19 +193,25 @@ enable, and C<false> or C<0> to disable.
 
 The colour to be used for striking, if enabled.
 
-=item rise=C<NUM>   rise=C<NUM>pt   rise=C<NUM>%
+=item rise=C<NUM>
 
-Rises the text by I<NUM> units from the baseline.
+In convenience mode, lowers the text by I<NUM>/1024 of the font size.
+May be negative to rise the text.
+
+In Pango conformance mode, rises the text by I<NUM> units from the baseline.
 May be negative to lower the text.
-
-Units are points if postfixed by B<pt>, otherwise Pango units (yes,
-even when in convenience mode).
-
-For best results, use a percentage since this scales with the font size.
 
 Note: C<rise> does not accumulate. Use C<baseline_shift> instead.
 
-=item bseline_shift=C<NUM>   beseline_shift=C<NUM>pt   baseline_shift=C<NUM>%
+=item rise=C<NUM>pt   rise=C<NUM>%
+
+Rises the text from the baseline. May be negative to lower the text.
+
+Units are points if postfixed by B<pt>, and a percentage of the current font size if postfixed by B<%>.
+
+Note: This is not (yet?) part of the Pango markup standard.
+
+=item baseline_shift=C<NUM>   beseline_shift=C<NUM>pt   baseline_shift=C<NUM>%
 
 Like C<rise>, but accumulates.
 
@@ -482,8 +488,8 @@ use constant STEP => 0.8;	# TODO: Optimal value?
 
 my %magstep =
   ( # "xx-small"	=> 1.0*STEP*STEP*STEP,
-    # "x-small"	=> 1.0*STEP*STEP,
-    # "small"	=> 1.0*STEP,
+     "x-small"	=> 1.0*STEP*STEP,
+     "small"	=> 1.0*STEP,
     "smaller"	=> 1.0*STEP,
     # "medium"	=> 1.0,
     # "large"	=> 1.0/STEP,
@@ -640,7 +646,8 @@ sub set_markup {
 			$base = $1 * $fsiz / 100;
 		    }
 		    else {
-			$base = $self->{_pango} ? $v / PANGO_SCALE : $v;
+			$v /= PANGO_SCALE;
+			$base = $self->{_pango} ? $v : -$v * $fsiz;
 		    }
 		    $base = -$base;
 		}
@@ -655,7 +662,7 @@ sub set_markup {
 			$base -= $1 * $fsiz / 100;
 		    }
 		    else {
-			$base -= $self->{_pango} ? $v / PANGO_SCALE : $v;
+			$base -= $self->{_pango} ? $v : -$v * $fsiz;
 		    }
 		}
 
