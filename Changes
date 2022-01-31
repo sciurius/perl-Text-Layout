@@ -6,6 +6,10 @@ Revision history for Text::Layout
 	has been reversed and is no longer proportional to the font size.
 	In convenience mode you can use percentages and points..
 
+	INCOMPATIBLE: Extent boxes are now relative to top-left. This
+	is Pango compatible and makes the box fit when drawn at the
+	same coordinates the layout was rendered.
+	
 	(Internal) Add extents method for CID fonts.
 	More Pango compatibility.
 	Add font properties direction and language.

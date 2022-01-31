@@ -571,17 +571,17 @@ sub set_markup {
 			$fsiz = $self->{_pango}
 			  ? $1 * PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS
 			  : $1;
-			warn("fsiz \"$v\" -> $fsiz\n");
+			# warn("fsiz \"$v\" -> $fsiz\n");
 		    }
 		    elsif ( $v =~ /\d+(?:\.\d+)?$/ ) {
 			$fsiz = $self->{_pango}
 			  ? $v * PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS / PANGO_SCALE
 			  : $v;
-			warn("fsiz \"$v\" -> $fsiz\n");
+			# warn("fsiz \"$v\" -> $fsiz\n");
 		    }
 		    elsif ( $v =~ /(\d+(?:\.\d+)?)\%$/ ) {
 			$fsiz *= $1 / 100;
-			warn("fsiz \"$v\" -> $fsiz\n");
+			# warn("fsiz \"$v\" -> $fsiz\n");
 		    }
 		    else {
 			carp("Invalid size: $v\n");

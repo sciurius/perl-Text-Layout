@@ -1,8 +1,7 @@
-Text::Layout
-============
+# Text::Layout
 
-WARNING: Some parts of the API may change in the near future. If you
-(want to) use this module for serious work please contact me.
+**WARNING: Some parts of the API are changing in incompatible ways. If you
+(want to) use this module for serious work please contact me.**
 
 Text::Layout provides methods for Pango style text formatting. Where
 possible the methods have identical names and (near) identical
