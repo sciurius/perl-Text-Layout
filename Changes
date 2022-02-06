@@ -2,6 +2,10 @@ Revision history for Text::Layout
 
 0.000
 
+	Fix issue #11 (PDF::Builder only).
+
+0.028	2022-02-04
+
 	INCOMPATIBLE: In Pango mode, the direction of rise and lower
 	has been reversed and is no longer proportional to the font size.
 	In convenience mode you can use percentages and points..
