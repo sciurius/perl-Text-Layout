@@ -3,6 +3,7 @@ Revision history for Text::Layout
 0.000
 
 	Fix issue #11 (PDF::Builder only).
+	Fix font changes for Markdown.
 
 0.028	2022-02-04
 
