@@ -4,6 +4,7 @@ Revision history for Text::Layout
 
 	Fix issue #11 (PDF::Builder only).
 	Fix font changes for Markdown.
+	Handle <span background>.
 
 0.028	2022-02-04
 

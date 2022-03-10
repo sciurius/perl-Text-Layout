@@ -513,6 +513,7 @@ sub set_markup {
     my $ovcl = $fcol;
     my $strk;
     my $stcl = $fcol;
+    my $bcol;
     my $base = 0;
 
     my $try_size = sub {
@@ -618,7 +619,7 @@ sub set_markup {
 
 		# <span background="red">
 		elsif ( $k =~ /^(background|bgcolor)$/ ) {
-		    # NYI.
+		    $bcol = $v;
 		}
 
 		# <span underline="double">
@@ -721,7 +722,7 @@ sub set_markup {
 		    # Restore.
 		    ( undef,
 		      $fcur, $fsiz, $fcol, $undl, $uncl, $ovrl, $ovcl,
-		      $strk, $stcl, $base, $href ) = @{$stack[-1]};
+		      $bcol, $strk, $stcl, $base, $href ) = @{$stack[-1]};
 		    pop(@stack);
 		}
 		else {
@@ -744,7 +745,7 @@ sub set_markup {
 	    # Save.
 	    push( @stack, [ "<$k".lc($v).">",
 			    $fcur, $fsiz, $fcol, $undl, $uncl, $ovrl, $ovcl,
-			    $strk, $stcl, $base, $href ] );
+			    $bcol, $strk, $stcl, $base, $href ] );
 
 	    # <b> <strong>
 	    if ( $k =~ /^(b|strong)$/ ) {
@@ -808,6 +809,7 @@ sub set_markup {
 		    font		     => $fcur,
 		    size		     => $fsiz,
 		    color		     => $fcol,
+		    bgcolor		     => $bcol,
 		    underline		     => $undl,
 		    underline_color	     => $uncl,
 		    overline		     => $ovrl,
