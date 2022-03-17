@@ -292,7 +292,7 @@ sub bbox {
 	    $hb->set_text( $_->{text} );
 	    my $info = $hb->shaper;
 	    $mydir = $hb->get_direction;
-	    warn("mydir $mydir\n");
+	    # warn("mydir $mydir\n");
 
 	    if ( $all ) {
 		my $ext = $hb->get_extents;
@@ -300,7 +300,7 @@ sub bbox {
 		    my $e = shift(@$ext);
 		    printf STDERR ( "G  %3d  %6.2f  %6.2f  %6.2f  %6.2f  %6.2f\n",
 				    $g->{g}, $g->{ax},
-				    @$e{ qw( x_bearing y_bearing width height ) } );
+				    @$e{ qw( x_bearing y_bearing width height ) } ) if 0;
 		    # It is easier to work with the baseline oriented box.
 		    $e->{xMin} = $e->{x_bearing};
 		    $e->{yMin} = $e->{y_bearing} + $e->{height} - $base;
@@ -325,7 +325,7 @@ sub bbox {
 	elsif ( $all && $font->can("extents") ) {
 	    my $e = $font->extents( $_->{text}, $size );
 	    printf STDERR ("(%.2f,%.2f)(%.2f,%.2f) -> ",
-			   $xMin//0, $yMin//0, $xMax//0, $yMax//0 ) if $all;
+			   $xMin//0, $yMin//0, $xMax//0, $yMax//0 ) if $all && 0;
 	    $xMax = $w + $e->{xMax} if $all;
 	    $w += $e->{wx};
 #	    warn("W \"", $_->{text}, "\" $w, ", $e->{width}, "\n");
@@ -338,7 +338,7 @@ sub bbox {
 		$yMax = $e->{yMax}
 		  if !defined($yMax) || $e->{yMax} > $yMax;
 		printf STDERR ("(%.2f,%.2f)(%.2f,%.2f)\n",
-			       $xMin//0, $yMin//0, $xMax//0, $yMax//0 );
+			       $xMin//0, $yMin//0, $xMax//0, $yMax//0 ) if 0;
 	    }
 	}
 	else {
@@ -496,7 +496,7 @@ sub PDF::API2::Resource::CIDFont::extents_cid {
 
 	printf STDERR ( "G  %3d  %6.2f  %6.2f  %6.2f  %6.2f  %6.2f\n",
 			$n, $lastwidth,
-			@$e{ qw( xMin yMin xMax yMax ) } );
+			@$e{ qw( xMin yMin xMax yMax ) } ) if 0;
 
 	$xMin //= ($width - $lastwidth) + $e->{xMin};
 	$yMin = $e->{yMin} if !defined($yMin) || $e->{yMin} < $yMin;
