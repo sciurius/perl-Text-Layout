@@ -488,15 +488,15 @@ use Text::ParseWords;
 use constant STEP => 0.8;	# TODO: Optimal value?
 
 my %magstep =
-  ( # "xx-small"	=> 1.0*STEP*STEP*STEP,
-     "x-small"	=> 1.0*STEP*STEP,
-     "small"	=> 1.0*STEP,
+  ( "xx-small"	=> 1.0*STEP*STEP*STEP,
+    "x-small"	=> 1.0*STEP*STEP,
+    "small"	=> 1.0*STEP,
     "smaller"	=> 1.0*STEP,
-    # "medium"	=> 1.0,
-    # "large"	=> 1.0/STEP,
+    "medium"	=> 1.0,
+    "large"	=> 1.0/STEP,
     "larger"	=> 1.0/STEP,
-    # "x-large"	=> 1.0/(STEP*STEP),
-    # "xx-large"  => 1.0/(STEP*STEP*STEP),
+    "x-large"	=> 1.0/(STEP*STEP),
+    "xx-large"  => 1.0/(STEP*STEP*STEP),
   );
 
 sub set_markup {
@@ -569,19 +569,19 @@ sub set_markup {
 		    if ( $try_size->($v) ) {
 			#ok
 		    }
-		    elsif ( $v =~ /(\d+(?:\.\d+)?)pt$/ ) {
+		    elsif ( $v =~ /^(\d+(?:\.\d+)?)pt$/ ) {
 			$fsiz = $self->{_pango}
 			  ? $1 * PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS
 			  : $1;
 			# warn("fsiz \"$v\" -> $fsiz\n");
 		    }
-		    elsif ( $v =~ /\d+(?:\.\d+)?$/ ) {
+		    elsif ( $v =~ /^\d+(?:\.\d+)?$/ ) {
 			$fsiz = $self->{_pango}
 			  ? $v * PANGO_DEVICE_UNITS / PDF_DEVICE_UNITS / PANGO_SCALE
 			  : $v;
 			# warn("fsiz \"$v\" -> $fsiz\n");
 		    }
-		    elsif ( $v =~ /(\d+(?:\.\d+)?)\%$/ ) {
+		    elsif ( $v =~ /^(\d+(?:\.\d+)?)\%$/ ) {
 			$fsiz *= $1 / 100;
 			# warn("fsiz \"$v\" -> $fsiz\n");
 		    }
