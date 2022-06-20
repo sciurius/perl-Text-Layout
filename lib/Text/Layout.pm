@@ -586,7 +586,7 @@ sub set_markup {
 			# warn("fsiz \"$v\" -> $fsiz\n");
 		    }
 		    else {
-			carp("Invalid size: $v\n");
+			carp("Invalid size: \"$v\"\n");
 		    }
 		}
 
@@ -705,7 +705,7 @@ sub set_markup {
 	    }
 
 	    else {
-		carp("Invalid span markup: $k\n");
+		carp("Invalid span markup: \"$k\"\n");
 	    }
 	}
     };
@@ -798,7 +798,7 @@ sub set_markup {
 	    }
 
 	    else {
-		carp("Invalid markup: $k\n");
+		carp("Invalid markup: \"$k\"\n");
 	    }
 	}
 
@@ -1289,7 +1289,7 @@ sub set_alignment {
 	$self->{_alignment} = lc $align;
     }
     else {
-	croak("Invalid alignment: $align");
+	croak("Invalid alignment: \"$align\"");
     }
     delete( $self->{_bbcache} );
 }
