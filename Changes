@@ -3,6 +3,7 @@ Revision history for Text::Layout
 0.000
 
 	Enable xx-small, medium, large, x-large and xx-large.
+	Enable byte-access to built-in Symbol and ZapfDingbats fonts.
 
 0.029	2022-03-17
 
