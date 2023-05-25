@@ -191,6 +191,31 @@ sub get_interline {
     $self->{interline};
 }
 
+# Not documented -- internal use only.
+
+# Note that the ascender/descender values are filled in at load time,
+# unless overridden by a set_... call.
+
+sub set_ascender {
+    my ( $self, $asc ) = @_;
+    $self->{ascender} = $asc;
+}
+
+sub get_ascender {
+    my ( $self ) = @_;
+    $self->{ascender};
+}
+
+sub set_descender {
+    my ( $self, $desc ) = @_;
+    $self->{descender} = $desc;
+}
+
+sub get_descender {
+    my ( $self ) = @_;
+    $self->{descender};
+}
+
 =over
 
 =item to_string
