@@ -7,3 +7,4 @@ Makefile
 CPAN
 MYMETA.*
 pm_to_blib
+!.github/
