@@ -711,7 +711,7 @@ sub set_markup {
     };
 
     # Split the string on markup instructions.
-    foreach my $a ( split( /(<.*?>)/, $string ) ) {
+ L: foreach my $a ( split( /(<.*?>)/, $string ) ) {
 
 	# Closing markup, e.g. </b> or </span>.
 	if ( $a =~ m;^<\s*/\s*(\w+)(.*)>$; ) {
@@ -739,9 +739,10 @@ sub set_markup {
 	}
 
 	# Opening markup, e.g. <b> or <span ...>.
-	elsif ( $a =~ m;^<\s*([-\w]+)(.*)>$; ) {
+	elsif ( $a =~ m;^<\s*([-\w]+)(.*)?>$; ) {
 	    my $k = lc $1;
 	    my $v = $2;
+	    my $closed = $v =~ s;\s*/\s*$;;;
 	    # Save.
 	    push( @stack, [ "<$k".lc($v).">",
 			    $fcur, $fsiz, $fcol, $undl, $uncl, $ovrl, $ovcl,
@@ -799,6 +800,10 @@ sub set_markup {
 
 	    else {
 		carp("Invalid markup: \"$k\"\n");
+	    }
+	    if ( $closed ) {
+		$a = "</$k>";
+		redo L;
 	    }
 	}
 
