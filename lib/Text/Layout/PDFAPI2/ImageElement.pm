@@ -53,6 +53,12 @@ below.
 All attributes are key=value pairs. The value should (but need not) be
 enclosed in quotes.
 
+Dimensional values may be a (fractional) number optionally
+postfixed by C<em> or C<ex>.
+A number indicates points.
+C<em> values are multiplied by the current font size and
+C<ex> values are multiplied by half the font size.
+
 =over 4
 
 =item C<src=>I<IMAGE>
@@ -62,17 +68,20 @@ png or gif image.
 
 =item C<width=>I<NNN>
 
-The desired width for the image,
+The desired width for the image.
+Dimensional.
 The image is scaled if necessary.
 
 =item C<height=>I<NNN>
 
 The desired height for the image.
+Dimensional.
 The image is scaled if necessary.
 
 =item C<dx=>I<NNN>
 
-An horizontal offset for the image, wrt. the current location in the text.
+A horizontal offset for the image, wrt. the current location in the text.
+Dimensional.
 
 =item C<dy=>I<NNN>
 
@@ -81,6 +90,7 @@ Same, but vertical.
 =item C<scale=>I<NNN>
 
 A scaling factor, to be applied I<after> width/height scaling.
+The value may be expressed as a percentage.
 
 =item C<bbox=>I<N>
 
@@ -93,12 +103,14 @@ This attribute has no effect on image objects.
 =item C<w=>I<NNN>
 
 The advance width of the image.
+Dimensional.
 Default advance is the image width plus horizontal offset.
 This overrides the advance and may be zero.
 
 =item C<h=>I<NNN>
 
 The advance height of the image.
+Dimensional.
 Default advance is the image height plus vertical offset.
 This overrides the advance and may be zero.
 
@@ -120,7 +132,7 @@ use Text::ParseWords qw( shellwords );
 
 field $pdf  :param :accessor;
 
-method parse( $k, $v ) {
+method parse( $ctx, $k, $v ) {
 
     my %ctl = ( type => TYPE );
 
@@ -134,7 +146,16 @@ method parse( $k, $v ) {
 	    # Ignore case unless required.
 	    $v = lc $v unless $k =~ /^(src)$/;
 
-	    if ( $k =~ /^(src|width|height|dx|dy|w|h|bbox|scale)$/ ) {
+	    if ( $k =~ /^(src|bbox)$/ ) {
+		$ctl{$k} = $v;
+	    }
+	    elsif ( $k =~ /^(width|height|dx|dy|w|h)$/ ) {
+		$v = $1 * $ctx->{size}     if $v =~ /^([\d.]+)em$/;
+		$v = $1 * $ctx->{size} / 2 if $v =~ /^([\d.]+)ex$/;
+		$ctl{$k} = $v;
+	    }
+	    elsif ( $k =~ /^(scale)$/ ) {
+		$v = $1 / 100 if $v =~ /^([\d.]+)\%$/;
 		$ctl{$k} = $v;
 	    }
 	    else {

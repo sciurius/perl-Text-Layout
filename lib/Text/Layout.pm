@@ -847,7 +847,21 @@ sub set_markup {
 	    # <.../>.
 	    elsif ( ( my $p = $self->get_element_handler($k) ) && $closed ) {
 		push( @content, { type => $k,
-				  %{ $p->parse( $k, $v ) } } );
+				  %{ $p->parse
+				       ( { type			      => $k,
+					   font			      => $fcur,
+					   size			      => $fsiz,
+					   color		      => $fcol,
+					   bgcolor		      => $bcol,
+					   underline		      => $undl,
+					   underline_color	      => $uncl,
+					   overline		      => $ovrl,
+					   overline_color	      => $ovcl,
+					   strikethrough	      => $strk,
+					   strikethrough_color	      => $stcl,
+					   base			      => $base,
+					   href			      => $href,
+					 }, $k, $v ) } } );
 	    }
 
 	    else {

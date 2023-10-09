@@ -9,8 +9,9 @@ role Text::Layout::ElementRole;
 
 # Implementors of this role must provide the following methods:
 
-method parse( $el, $atts );
+method parse( $ctx, $el, $atts );
 #
+# $ctx:  context (current values for font, size, etc.)
 # $el :  the elemant name, e.g. "img"
 # $atts: anything that follows the tag, presumably atributes
 #
@@ -26,14 +27,15 @@ method render( $hash, $gfx, $x, $y );
 # $x   : $x origin
 # $y   : $y origin
 #
-# Should return the advance width.
+# Should return the advance box (array ref).
 
 method bbox( $hash );
 #
 # $hash: the hash as delivered by the parser
 #
-# Should return an array reference with the augmented bounding box.
-# Elements 0 .. 3 contain the bounding box,
-# Element 4 contains the horizontal advance and element 5 the vertical advance.
+# Should return a hash ref with
+#  bbox : the bounding box of the image
+#  bb   : the bounding box after scaling/displacement
+#  abox : the advance box
 
 1;
