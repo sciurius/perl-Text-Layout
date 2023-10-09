@@ -2,6 +2,11 @@ Revision history for Text::Layout
 
 0.000
 
+	Pluggable elements extend parsing and rendering of elements.
+	A pluggable element is used to implement the <img> element, to
+	include images inline in text strings.
+	See tests/im1.pl for examples.
+
 0.031	2023-05-29
 
 	Improve bounding box and line spacing determination by using the
