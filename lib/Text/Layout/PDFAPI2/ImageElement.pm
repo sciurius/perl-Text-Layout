@@ -92,6 +92,12 @@ Same, but vertical.
 A scaling factor, to be applied I<after> width/height scaling.
 The value may be expressed as a percentage.
 
+=item C<align=>I<XXX>
+
+Align the image in the width given by C<w=>I<NNN>.
+
+Possible alignments are C<left>, C<center>, and C<right>.
+
 =item C<bbox=>I<N>
 
 If true, the actual bounding box of an object is used for placement.
@@ -149,6 +155,9 @@ method parse( $ctx, $k, $v ) {
 	    if ( $k =~ /^(src|bbox)$/ ) {
 		$ctl{$k} = $v;
 	    }
+	    elsif ( $k eq "align" && $v =~ /^(left|right|center)$/ ) {
+		$ctl{$k} = $v;
+	    }
 	    elsif ( $k =~ /^(width|height|dx|dy|w|h)$/ ) {
 		$v = $1 * $ctx->{size}     if $v =~ /^([\d.]+)em$/;
 		$v = $1 * $ctx->{size} / 2 if $v =~ /^([\d.]+)ex$/;
@@ -163,7 +172,7 @@ method parse( $ctx, $k, $v ) {
 	    }
 	}
 
-	# Currently do not have value-less attributes.
+	# Currently we do not have value-less attributes.
 	else {
 	    carp("Invalid " . TYPE . " attribute: \"$k\"\n");
 	}
@@ -183,27 +192,23 @@ method render( $fragment, $gfx, $x, $y ) {
     my $width  = $bb[2] - $bb[0];
     my $height = $bb[3] - $bb[1];
     my $img = $self->getimage($fragment);
+    my $is_image = ref($img) =~ /::Image::/;
     my @a;
 
-    if ( ref($img) =~ /::Image::/ ) {
+    if ( $is_image ) {
 	@a = ( $x + $bb[0], $y + $bb[1], $width, $height );
 	warn("IMG x=$a[0], y=$a[1], width=$a[2], height=$a[3]\n");
     }
     else {
-	my $obj_width  = $bbox[2] - $bbox[0];
-	my $obj_height = $bbox[3] - $bbox[1];
-	my $xscale = 1;
-	if ( $obj_width != $width ) {
-	    $xscale = $width / $obj_width;
-	}
-	my $yscale = $xscale;
-	if ( $obj_height != $height ) {
-	    $yscale = $height / $obj_height;
-	}
-	# Custom scale already applied into width/height.
+	my ( $xscale, $yscale ) = @bb[4,5];
 
-	@a = ( $x+$bb[0]-$bbox[0], $y+$bb[1]-$bbox[1], $xscale, $yscale );
-	warn("OBJ x=$a[0], y=$a[1], width=$width, height=$height",
+	@a = ( $x + $bb[0],
+	       $y + $bb[1] - $yscale*($bbox[1]),
+	       $xscale, $yscale );
+	unless ( $fragment->{bbox} ) {
+	    $a[0] -= $xscale*($bbox[0]);
+	}
+	warn("OBJ x=${x}->$a[0], y=${y}->$a[1], width=$width, height=$height",
 	     ( $xscale != 1 || $yscale != 1 )
 	     ? ", scale=$xscale" : "",
 	     ( $xscale != $yscale )
@@ -220,7 +225,7 @@ method bbox( $fragment ) {
     return $fragment->{_bb} if $fragment->{_bb};
 
     my @bbox;	# bbox of image or object
-    my @bb;	# bbox after scaling/displacement
+    my @bb;	# bbox after scaling/displacement, plus scale factors
     my @abox;	# advance box
 
     my $img = $self->getimage($fragment);
@@ -235,6 +240,8 @@ method bbox( $fragment ) {
     }
     else {
 	@bbox = $img->bbox;
+	@bbox[0,2] = @bbox[2,0] if $bbox[2] < $bbox[0];
+	@bbox[1,3] = @bbox[3,1] if $bbox[3] < $bbox[1];
 	$img_width  = $bbox[2] - $bbox[0];
 	$img_height = $bbox[3] - $bbox[1];
     }
@@ -267,11 +274,11 @@ method bbox( $fragment ) {
     my $dy = $fragment->{dy} || 0;
 
     if ( !$is_image && $fragment->{bbox} ) {
-	$dx += $bbox[0];
-	$dy += $bbox[1];
+	$dx += $bbox[0] * $xscale;
+	$dy += $bbox[1] * $yscale;
     }
 
-    @bb = ( $dx, $dy, $width + $dx, $height + $dy );
+    @bb = ( $dx, $dy, $width + $dx, $height + $dy, $xscale, $yscale );
     @abox = @bb;
 
     # Bounding box width/height.
@@ -284,6 +291,14 @@ method bbox( $fragment ) {
     }
     if ( defined $fragment->{d} ) {
 	$abox[1] = $fragment->{d};
+    }
+    if ( $fragment->{align} ) {
+	if ( $fragment->{align} eq "right" ) {
+	    $bb[0] += $abox[2] - $width;
+	}
+	elsif ( $fragment->{align} eq "center" ) {
+	    $bb[0] += ($abox[2]-$width)/2;
+	}
     }
 
     warn( ref($img) =~ /::Image::/ ? "IMG" : "OBJ",
