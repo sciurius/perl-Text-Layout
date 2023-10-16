@@ -54,7 +54,7 @@ All attributes are key=value pairs. The value should (but need not) be
 enclosed in quotes.
 
 Dimensional values may be a (fractional) number optionally
-postfixed by C<em> or C<ex>.
+postfixed by C<em> or C<ex>, or a percentage.
 A number indicates points.
 C<em> values are multiplied by the current font size and
 C<ex> values are multiplied by half the font size.
@@ -85,7 +85,9 @@ Dimensional.
 
 =item C<dy=>I<NNN>
 
-Same, but vertical.
+Same, but vertical. Positive amounts move up.
+
+Note the direction is opposite to the Pango C<rise>.
 
 =item C<scale=>I<NNN>
 
@@ -143,10 +145,10 @@ method parse( $ctx, $k, $v ) {
     my %ctl = ( type => TYPE );
 
     # Split the attributes.
-    foreach my $k ( shellwords($v) ) {
+    foreach my $kk ( shellwords($v) ) {
 
 	# key=value
-	if ( $k =~ /^([-\w]+)=(.+)$/ ) {
+	if ( $kk =~ /^([-\w]+)=(.+)$/ ) {
 	    my ( $k, $v ) = ( $1, $2 );
 
 	    # Ignore case unless required.
@@ -159,8 +161,9 @@ method parse( $ctx, $k, $v ) {
 		$ctl{$k} = $v;
 	    }
 	    elsif ( $k =~ /^(width|height|dx|dy|w|h)$/ ) {
-		$v = $1 * $ctx->{size}     if $v =~ /^([\d.]+)em$/;
-		$v = $1 * $ctx->{size} / 2 if $v =~ /^([\d.]+)ex$/;
+		$v = $1 * $ctx->{size}       if $v =~ /^([\d.]+)em$/;
+		$v = $1 * $ctx->{size} / 2   if $v =~ /^([\d.]+)ex$/;
+		$v = $1 * $ctx->{size} / 100 if $v =~ /^([\d.]+)\%$/;
 		$ctl{$k} = $v;
 	    }
 	    elsif ( $k =~ /^(scale)$/ ) {
@@ -168,13 +171,13 @@ method parse( $ctx, $k, $v ) {
 		$ctl{$k} = $v;
 	    }
 	    else {
-		carp("Invalid " . TYPE . " attribute: \"$k\"\n");
+		carp("Invalid " . TYPE . " attribute: \"$k\" ($kk)\n");
 	    }
 	}
 
 	# Currently we do not have value-less attributes.
 	else {
-	    carp("Invalid " . TYPE . " attribute: \"$k\"\n");
+	    carp("Invalid " . TYPE . " attribute: \"$kk\"\n");
 	}
     }
 

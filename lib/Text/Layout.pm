@@ -204,11 +204,13 @@ May be negative to lower the text.
 Note: In Pango conformance mode, C<rise> does B<not> accumulate.
  Use C<baseline_shift> instead.
 
-=item rise=C<NUM>pt   rise=C<NUM>%
+=item rise=C<NUM>pt   rise=C<NUM>%   rise=C<NUM>em   rise=C<NUM>ex
 
 Rises the text from the baseline. May be negative to lower the text.
 
 Units are points if postfixed by B<pt>, and a percentage of the current font size if postfixed by B<%>.
+
+B<em> units are equal to the current font size, B<ex> half the font size.
 
 Note: This is not (yet?) part of the Pango markup standard.
 
@@ -648,6 +650,9 @@ sub set_markup {
 		    elsif ( !$self->{_pango} && $v =~ /^(-?\d+(?:\.\d*)?)\%$/ ) {
 			$base = -$1 * $fsiz / 100;
 		    }
+		    elsif ( !$self->{_pango} && $v =~ /^(-?\d+(?:\.\d*)?)e([mx])$/ ) {
+			$base = $2 eq 'x' ? -$1 * $fsiz / 2 : -$1 * $fsiz;
+		    }
 		    else {
 			$v /= PANGO_SCALE;
 			$base = $self->{_pango} ? -$v : $base + $v * $fsiz;
@@ -662,6 +667,9 @@ sub set_markup {
 		    }
 		    elsif ( $v =~ /^(-?\d+(?:\.\d*)?)\%$/ ) {
 			$base -= $1 * $fsiz / 100;
+		    }
+		    elsif ( $v =~ /^(-?\d+(?:\.\d*)?)e([mx])$/ ) {
+			$base = $2 eq 'x' ? $1 * $fsiz / 2 : $1 * $fsiz;
 		    }
 		    else {
 			$base -= $self->{_pango} ? $v : -$v * $fsiz;
