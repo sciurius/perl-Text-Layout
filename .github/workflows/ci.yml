@@ -43,7 +43,7 @@ jobs:
     - name: Run tests
       run: |
         perl Makefile.PL
-        make
-        make test
+        ${{ ( matrix.runner == 'windows-latest' && 'gmake' ) || 'make' }}
+        ${{ ( matrix.runner == 'windows-latest' && 'gmake' ) || 'make' }} test
 
 
