@@ -140,6 +140,8 @@ use Text::ParseWords qw( shellwords );
 
 field $pdf  :param :accessor;
 
+use constant DEBUG => 0;
+
 method parse( $ctx, $k, $v ) {
 
     my %ctl = ( type => TYPE );
@@ -200,7 +202,7 @@ method render( $fragment, $gfx, $x, $y ) {
 
     if ( $is_image ) {
 	@a = ( $x + $bb[0], $y + $bb[1], $width, $height );
-	warn("IMG x=$a[0], y=$a[1], width=$a[2], height=$a[3]\n");
+	warn("IMG x=$a[0], y=$a[1], width=$a[2], height=$a[3]\n") if DEBUG;
     }
     else {
 	my ( $xscale, $yscale ) = @bb[4,5];
@@ -215,7 +217,7 @@ method render( $fragment, $gfx, $x, $y ) {
 	     ( $xscale != 1 || $yscale != 1 )
 	     ? ", scale=$xscale" : "",
 	     ( $xscale != $yscale )
-	     ? ",$yscale" : "", "\n");
+	     ? ",$yscale" : "", "\n") if DEBUG;
     }
 
     $gfx->object( $img, @a );
@@ -311,7 +313,7 @@ method bbox( $fragment ) {
 	  ( $xscale != 1 || $yscale != 1 )
 	  ? " scale=$xscale" : "",
 	  ( $xscale != $yscale )
-	  ? ",$yscale" : "", "\n");
+	  ? ",$yscale" : "", "\n") if DEBUG;
 
     return $fragment->{_bb} = { bbox => \@bbox, bb => \@bb, abox => \@abox };
 }
