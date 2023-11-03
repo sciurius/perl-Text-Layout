@@ -8,9 +8,7 @@ package Text::Layout;
 
 use Carp;
 
-use Text::Layout::Version;
-
-our $VERSION = $Text::Layout::Version::VERSION;
+use Text::Layout::Version; our $VERSION = $Text::Layout::Version::VERSION;
 
 =head1 NAME
 
