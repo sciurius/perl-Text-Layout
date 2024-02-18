@@ -184,7 +184,7 @@ The colour to be used for ovderlining, if enabled.
 
 =item strikethrough="I<ARG>"
 
-Enables or diables overlining. I<ARG> must be C<true> or C<1> to
+Enables or disables overlining. I<ARG> must be C<true> or C<1> to
 enable, and C<false> or C<0> to disable.
 
 =item strikethrough_color="I<COLOR>"

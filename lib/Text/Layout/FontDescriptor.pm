@@ -147,6 +147,8 @@ sub get_size {
     $self->{size};
 }
 
+=over
+
 =item set_direction
 
 =item get_direction
