@@ -8,9 +8,7 @@ package Text::Layout::FontConfig;
 
 use Carp;
 
-use Text::Layout::Version;
-
-our $VERSION = $Text::Layout::VERSION;
+use Text::Layout::Version; our $VERSION = $Text::Layout::Version::VERSION;
 
 use Text::Layout::FontDescriptor;
 

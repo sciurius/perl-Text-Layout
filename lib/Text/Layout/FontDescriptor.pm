@@ -8,9 +8,7 @@ package Text::Layout::FontDescriptor;
 
 use Carp;
 
-use Text::Layout::Version;
-
-our $VERSION = $Text::Layout::VERSION;
+use Text::Layout::Version; our $VERSION = $Text::Layout::Version::VERSION;
 
 =head1 NAME
 

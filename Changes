@@ -2,6 +2,14 @@ Revision history for Text::Layout
 
 0.000
 
+0.035	2024-02-19
+
+	Fix VERSION problems for defective toolchains.
+
+0.034	2024-02-18
+
+	Packaging changes.
+
 0.033	2024-02-18
 
 	Packaging changes.
