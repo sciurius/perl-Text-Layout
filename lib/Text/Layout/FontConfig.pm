@@ -500,7 +500,7 @@ use File::Basename;
 
 sub from_filename {
     shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
-    my ( $file ) = @_;
+    my ( $file, $size ) = @_;
     my $b;
     ( $b, undef, undef ) = fileparse( $file, qr/\.\w+/ );
     my ( $family, $style, $weight ) = ( $b, "normal", "normal" );
@@ -522,7 +522,9 @@ sub from_filename {
 	loader => $loader,
 	family => $family,
 	style  => $style,
-	weight => $weight );
+	weight => $weight,
+	$size ? ( size => $size ) : (),
+      );
 
     $fonts{$family}{$style}{$weight} //= $fd;
 
