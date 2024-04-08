@@ -589,6 +589,7 @@ sub _fallback {
       or do { $fallback = ''; return };
 
     my $res;
+    local $_;
     while ( <$fd> ) {
 	chomp;
 	next unless -f -r $_;
