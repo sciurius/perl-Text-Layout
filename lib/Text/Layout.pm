@@ -37,7 +37,7 @@ Example, using PDF::API2 integration:
 
     # Create a PDF document.
     my $pdf = PDF::API2->new;	# or PDF::Builder->new
-    $pdf->mediabox( 595, 842 );	# A4, PDF units
+    $pdf->default_page_size("a4")	# ISO A4
 
     # Set up page and get the text context.
     my $page = $pdf->page;
@@ -58,7 +58,7 @@ Example, using PDF::API2 integration:
 
     # Render it.
     $layout->show( 0, 600, $ctx );
-    $pdf->saveas("out.pdf");
+    $pdf->save("out.pdf");
 
 All PDF::API2 graphic and text methods can still be used, they won't
 interfere with the layout methods.
