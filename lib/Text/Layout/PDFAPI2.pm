@@ -102,7 +102,11 @@ sub render {
 
     foreach my $fragment ( @{ $self->{_content} } ) {
 
-	if ( my $hd = $self->get_element_handler($fragment->{type}) ) {
+	if ( $fragment->{type} eq "strut" ) {
+	    $x += $fragment->{width};
+	}
+
+	elsif ( my $hd = $self->get_element_handler($fragment->{type}) ) {
 	    $text->textend;
 	    my $ab = $hd->render($fragment, $text, $x, $y-$bl);
 	    $text->textstart;
@@ -295,6 +299,7 @@ sub bbox {
     my ( $d, $a ) = (0) x 2;
     my ( $xMin, $xMax, $yMin, $yMax );
     my $dir;
+    $self->{_struts} = [];
 
     foreach ( @{ $self->{_content} } ) {
 
@@ -304,7 +309,20 @@ sub bbox {
 		  map { defined($_) ? sprintf("%.2f", $_) : "<undef>" }
 		  $xMin, $yMin, $xMax, $yMax ), "\n");
 
-	if ( my $hd = $self->get_element_handler($_->{type}) ) {
+	if ( $_->{type} eq "strut" ) {
+	    my @ab = ( 0, -($_->{desc}//0),
+		       $_->{width}//0, $_->{asc}//0 );
+	    my %s = %$_;
+	    delete($s{type});
+	    $s{_x} = $w;
+	    push( @{ $self->{_struts} }, \%s );
+	    # Add to bbox but not to inkbox.
+	    $w += $ab[2];
+	    $a = $ab[3] if $ab[3] > $a;
+	    $d = $ab[1] if $ab[1] < $d;
+	}
+
+	elsif ( my $hd = $self->get_element_handler($_->{type}) ) {
 	    my @ab = @{$hd->bbox($_)->{abox}};
 	    $xMin //= $w + $ab[0] if $all;
 	    $xMax = $w + $ab[2];
@@ -380,7 +398,7 @@ sub bbox {
 	    if ( $all ) {
 		$_ -= $base for $e->{yMin}, $e->{yMax};
 		# Baseline oriented box.
-		$xMin //= $e->{xMin};
+		$xMin //= $w - $e->{wx} + $e->{xMin};
 		$yMin = $e->{yMin}
 		  if !defined($yMin) || $e->{yMin} < $yMin;
 		$yMax = $e->{yMax}

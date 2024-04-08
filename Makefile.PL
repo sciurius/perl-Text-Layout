@@ -23,11 +23,13 @@ WriteMakefile(
  MIN_PERL_VERSION    => '5.026000',
  PREREQ_PM           => {
 			 'Object::Pad'                 => 0.78,
+			 'Text::ParseWords' => 0,
 			 'Test::More' => 0,
 			},
  TEST_REQUIRES       => {
 			 'Object::Pad'                 => 0.78,
 			 'PDF::API2'  => 2.036,
+			 'Text::ParseWords' => 0,
 			},
  META_MERGE => {
    resources    => {

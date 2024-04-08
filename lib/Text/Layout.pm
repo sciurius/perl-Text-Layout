@@ -228,6 +228,86 @@ Creates a clickable target that activates the I<URL>.
 
 =back
 
+=head2 Img (image) attributes
+
+I<This is an extension to Pango markup.>
+
+Note that image markup elements may only occur as closed elements,
+i.e., C<< <img/> >>.
+
+=over 8
+
+=item id="I<ID>"
+
+Implementation dependent.
+
+=item src="I<URI>"
+
+Source filename or url for the image.
+
+=item width="I<WIDTH>" (short: w="I<WIDTH>")
+
+The width the image should be considered to occupy, regardless its
+actual dimensions.
+
+=item height="I<HEIGHT>" (short: h="I<HEIGHT>")
+
+The height the image should be considered to occupy, regardless its
+actual dimensions.
+
+=item x="I<XDISP>"
+
+Horizontal displacement of the image relative to the C<< <img/> >> element.
+
+=item y="I<YDISP>"
+
+Vertical displacement of the image relative to the C<< <img/> >> element.
+
+=item border="I<THICK>"
+
+Provide a border around the element. I<THICK> denotes its thickness.
+
+=back
+
+=head2 Strut attributes
+
+I<This is an extension to Pango markup.>
+
+A C<strut> is a markup element that has bounding box dimensions but no
+ink dimensions.
+
+Note that strut markup elements may only occur as closed elements,
+i.e., C<< <img/> >>.
+
+=over 8
+
+=item label="I<LABEL>"
+
+An optional identifying label.
+
+=item width="I<WIDTH>" (short w="I<WIDTH>")
+
+The width of the strut. Default value is zero.
+
+Width may be expressed in points, C<em> (font size) or C<ex> (half of
+font size).
+
+=item ascender="I<ASC>" (short: a="I<ASC>")
+
+The ascender of the strut. Optional.
+
+May be expressed in points, C<em> (font size) or C<ex> (half of
+font size).
+
+=item descender="I<DESC>" (short: d="I<DESC>")
+
+The descender of the strut. Optional.
+
+May be expressed in points, C<em> (font size) or C<ex> (half of
+font size).
+
+=back
+
 =head2 Shortcuts
 
 Equivalent C<span> attributes for shortcuts.
@@ -293,6 +373,7 @@ sub px2pu { $_[0] };
 sub pu2px { $_[0] };
 
 use Text::Layout::FontConfig;
+use Text::Layout::Utils qw(parse_kv);
 
 =head1 METHODS
 
@@ -427,6 +508,7 @@ sub set_text {
 	  base  => 0,
 	} ];
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -538,8 +620,10 @@ sub set_markup {
     my $span;
     $span = sub {
 	my ( $v ) = @_;
+
 	# Split the span attributes. Note that shellwords is so kind to
 	# split 'font="xx yy"' as a single word 'font=xx yy'.
+	# NOTE: can't use parse_kv -- order is important
 	foreach my $k ( shellwords($v) ) {
 
 	    # key=value
@@ -548,9 +632,6 @@ sub set_markup {
 
 		# Ignore case unless required.
 		$v = lc $v unless $k =~ /^(link|href|a)$/;
-
-		# Strip quotes. Shouldn't be necessary now we use shellwords.
-		# $v =~ s/^(["'])(.*)\1$/$2/;
 
 		# <span font_desc="Sans 20">
 		if ( $k =~ /^(font|font_desc)$/ ) {
@@ -722,36 +803,25 @@ sub set_markup {
 
 	my %img;
 	# Split the attributes.
-	foreach my $k ( shellwords($v) ) {
+	while ( my ( $k, $v ) = each %{parse_kv($v)} ) {
 
-	    # key=value
-	    if ( $k =~ /^([-\w]+)=(.+)$/ ) {
-		my ( $k, $v ) = ( $1, $2 );
+	    # Ignore case unless required.
+	    $v = lc $v unless $k =~ /^(src|id)$/;
 
-		# Ignore case unless required.
-		$v = lc $v unless $k =~ /^(src|id)$/;
-
-		# Strip quotes. Shouldn't be necessary now we use shellwords.
-		# $v =~ s/^(["'])(.*)\1$/$2/;
-
-		if ( $k eq "src" ) {
-		    $img{src} = $v;
-		}
-		elsif ( $k eq "id" ) {
-		    $img{id} = $v;
-		}
-		elsif ( $k =~ /^(width|height|w|h)$/ ) {
-		    $img{$k} = $v;
-		}
-		elsif ( $k =~ /^(x|y)$/ ) {
-		    $img{$k} = $v;
-		}
-		elsif ( $k eq "border" ) {
-		    $img{border} = $v;
-		}
-		else {
-		    carp("Invalid image attribute: \"$k\"\n");
-		}
+	    if ( $k eq "src" ) {
+		$img{src} = $v;
+	    }
+	    elsif ( $k eq "id" ) {
+		$img{id} = $v;
+	    }
+	    elsif ( $k =~ /^(width|height|w|h)$/ ) {
+		$img{$k} = $v;
+	    }
+	    elsif ( $k =~ /^(x|y)$/ ) {
+		$img{$k} = $v;
+	    }
+	    elsif ( $k eq "border" ) {
+		$img{border} = $v;
 	    }
 	    else {
 		carp("Invalid image attribute: \"$k\"\n");
@@ -845,6 +915,37 @@ sub set_markup {
 		$span->("underline=single");
 	    }
 
+	    # <strut width=".."/>
+	    elsif ( $k eq "strut" && $closed ) {
+		my $args = { w => 0, %{parse_kv($v)} };
+		# Split the attributes.
+		while ( my ( $k, $v ) = each(%$args) ) {
+		    if ( $k =~ /^(w(?:idth)?|a(?:scend)?|d(?:escend)?)$/i ) {
+			if ( $v =~ /^([.\d]+)em$/ ) {
+			    $args->{$k} = $1 * $fsiz;
+			}
+			elsif ( $v =~ /^([.\d]+)ex$/ ) {
+			    $args->{$k} = 0.5 * $1 * $fsiz;
+			}
+			else {
+			    $args->{$k} = 0+$v;
+			}
+		    }
+		    elsif ( $k =~ /^(label)$/i ) {
+			$args->{$k} = $v;
+		    }
+		    else {
+			carp("Unknown strut attribute: \"$k\"\n");
+		    }
+		}
+		push( @content, { type	=> $k,
+				  width	=> $args->{width}   // $args->{w},
+				  desc	=> $args->{descend} // $args->{d},
+				  asc	=> $args->{ascend}  // $args->{a},
+				  $args->{label} ? ( label => $args->{label} ) : (),
+				} );
+	    }
+
 	    # <span ...>.
 	    elsif ( $k =~ /^(span)$/ ) {
 		$span->($v);
@@ -910,6 +1011,7 @@ sub set_markup {
     # Store content.
     $self->{_content} = \@content;
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -978,6 +1080,7 @@ sub set_font_description {
     $self->{_currentcolor} = $description->{color} || "black";
 
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -1017,6 +1120,7 @@ sub set_width {
     my ( $self, $width ) = @_;
     $self->{_width} = $self->{_pu2px}->($width);
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -1051,6 +1155,7 @@ sub set_height {
     my ( $self, $height ) = @_;
     $self->{_height} = $self->{_pu2px}->($height);
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -1235,6 +1340,7 @@ sub set_spacing {
     my ( $self, $spacing ) = @_;
     $self->{_currentspacing} = $self->{_pu2px}->($spacing);
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -1278,6 +1384,7 @@ sub set_line_spacing {
     my ( $self, $factor ) = @_;
     $self->{_currentlinespacing} = $factor;
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -1370,6 +1477,7 @@ sub set_alignment {
 	croak("Invalid alignment: \"$align\"");
     }
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -1706,6 +1814,7 @@ sub set_font_size {
     my ( $self, $size ) = @_;
     $self->{_currentsize} = $size;
     delete( $self->{_bbcache} );
+    delete( $self->{_struts} );
 }
 
 =over
@@ -1778,6 +1887,32 @@ sub get_bbox {
 
 =over
 
+=item get_struts
+
+Returns the list of the struts in the layout, if any.
+
+Each element of the list is a hash, with key/value pairs for all the
+attributes of the corresponding C<< <strut/> >> markup item.
+
+Additionally, in each element there's a key C<_x> that contains the
+horizontal displacement of the strut relative to the star of the layout.
+
+In list context returns the array of values, in scalar context an
+array ref.
+
+=back
+
+=cut
+
+sub get_struts {
+    my ( $self ) = @_;
+    $self->bbox unless $self->{_struts};
+    my $res = $self->{_struts};
+    wantarray ? @$res : $res;
+}
+
+=over
+
 =item show( $x, $y, $text )
 
 Transfers the content of this layout instance to the designated
@@ -1813,13 +1948,15 @@ sub set_pango_mode {
     my ( $self, $conformant ) = @_;
 
     if ( $conformant ) {
-	delete( $self->{_bbcache} ) unless $self->{_pango};
+	delete( $self->{_bbcache} ), delete( $self->{_struts} )
+	  unless $self->{_pango};
 	$self->{_px2pu} = sub { $_[0] * PANGO_SCALE };
 	$self->{_pu2px} = sub { $_[0] / PANGO_SCALE };
 	return $self->{_pango} = PANGO_SCALE;
     }
 
-    delete( $self->{_bbcache} ) if $self->{_pango};
+    delete( $self->{_bbcache} ), delete( $self->{_struts} )
+      if $self->{_pango};
     $self->{_px2pu} = \&px2pu;
     $self->{_pu2px} = \&pu2px;
     return $self->{_pango} = 0;
@@ -1894,7 +2031,7 @@ GitHub.
 
 =head1 LICENSE
 
-Copyright (C) 2019, Johan Vromans
+Copyright (C) 2019,2024 Johan Vromans
 
 This module is free software. You can redistribute it and/or
 modify it under the terms of the Artistic License 2.0.

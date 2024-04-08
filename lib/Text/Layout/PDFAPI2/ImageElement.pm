@@ -136,7 +136,7 @@ This class is usually instantiated in a Text::Layout register_element call:
 use constant TYPE => "img";
 use Carp;
 
-use Text::ParseWords qw( shellwords );
+use Text::Layout::Utils qw(parse_kv);
 
 field $pdf  :param :accessor;
 
@@ -147,39 +147,30 @@ method parse( $ctx, $k, $v ) {
     my %ctl = ( type => TYPE );
 
     # Split the attributes.
-    foreach my $kk ( shellwords($v) ) {
+    my $attr = parse_kv($v);
+    while ( my ( $k, $v ) = each( %$attr ) ) {
 
-	# key=value
-	if ( $kk =~ /^([-\w]+)=(.+)$/ ) {
-	    my ( $k, $v ) = ( $1, $2 );
+	# Ignore case unless required.
+	$v = lc $v unless $k =~ /^(src)$/;
 
-	    # Ignore case unless required.
-	    $v = lc $v unless $k =~ /^(src)$/;
-
-	    if ( $k =~ /^(src|bbox)$/ ) {
-		$ctl{$k} = $v;
-	    }
-	    elsif ( $k eq "align" && $v =~ /^(left|right|center)$/ ) {
-		$ctl{$k} = $v;
-	    }
-	    elsif ( $k =~ /^(width|height|dx|dy|w|h)$/ ) {
-		$v = $1 * $ctx->{size}       if $v =~ /^(-?[\d.]+)em$/;
-		$v = $1 * $ctx->{size} / 2   if $v =~ /^(-?[\d.]+)ex$/;
-		$v = $1 * $ctx->{size} / 100 if $v =~ /^(-?[\d.]+)\%$/;
-		$ctl{$k} = $v;
-	    }
-	    elsif ( $k =~ /^(scale)$/ ) {
-		$v = $1 / 100 if $v =~ /^([\d.]+)\%$/;
-		$ctl{$k} = $v;
-	    }
-	    else {
-		carp("Invalid " . TYPE . " attribute: \"$k\" ($kk)\n");
-	    }
+	if ( $k =~ /^(src|bbox)$/ ) {
+	    $ctl{$k} = $v;
 	}
-
-	# Currently we do not have value-less attributes.
+	elsif ( $k eq "align" && $v =~ /^(left|right|center)$/ ) {
+	    $ctl{$k} = $v;
+	}
+	elsif ( $k =~ /^(width|height|dx|dy|w|h)$/ ) {
+	    $v = $1 * $ctx->{size}       if $v =~ /^(-?[\d.]+)em$/;
+	    $v = $1 * $ctx->{size} / 2   if $v =~ /^(-?[\d.]+)ex$/;
+	    $v = $1 * $ctx->{size} / 100 if $v =~ /^(-?[\d.]+)\%$/;
+	    $ctl{$k} = $v;
+	}
+	elsif ( $k =~ /^(scale)$/ ) {
+	    $v = $1 / 100 if $v =~ /^([\d.]+)\%$/;
+	    $ctl{$k} = $v;
+	}
 	else {
-	    carp("Invalid " . TYPE . " attribute: \"$kk\"\n");
+	    carp("Invalid " . TYPE . " attribute: \"$k\"\n");
 	}
     }
 
