@@ -145,10 +145,7 @@ sub render {
 		$gfx->fillcolor($fragment->{bgcolor});
 		$gfx->strokecolor($fragment->{bgcolor});
 		$gfx->linewidth(2);
-		$gfx->move($x, $y);
-		$gfx->line($x+$w, $y);
-		$gfx->line($x+$w, $y+$h);
-		$gfx->line($x, $y+$h);
+		$gfx->rectangle($x, $y, $x+$w, $y+$h);
 		$text->close;
 		$text->fillstroke;
 		$gfx->restore;
@@ -202,11 +199,7 @@ sub render {
 		    $gfx->fillcolor($fragment->{bgcolor});
 		    $gfx->strokecolor($fragment->{bgcolor});
 		    $gfx->linewidth(2);
-		    $gfx->move($x, $y);
-		    $gfx->line($x+$w, $y);
-		    $gfx->line($x+$w, $y+$h);
-		    $gfx->line($x, $y+$h);
-		    $text->close;
+		    $gfx->rectangle($x, $y, $x+$w, $y+$h);
 		    $text->fillstroke;
 		    $gfx->restore;
 		    $text->textstart;
