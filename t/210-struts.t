@@ -20,11 +20,9 @@ my $pdf = PDF::API2->new;
 
 my $text = "<strut label='start' width=10/>The quick brown fox<strut label='end'/>";
 
-my $fc = Text::Layout::FontConfig->new( corefonts => 1 );
-
 my $layout = Text::Layout->new($pdf);
-$layout->set_font_description
-  ( Text::Layout::FontConfig->from_string( "Times-Roman 20" ) );
+my $fc = Text::Layout::FontConfig->new( corefonts => 1 );
+$layout->set_font_description( $fc->from_string( "Times 20" ) );
 
 $layout->set_markup($text);
 my @s = $layout->get_struts;
@@ -40,4 +38,6 @@ my $exp = [ { _x     => 0,
 	      width  => 0,
 	      label  => 'end' } ];
 
+delete $s[0]->{_strut};
+delete $s[1]->{_strut};
 is_deeply( \@s, $exp, "struts" );
