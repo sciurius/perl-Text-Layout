@@ -315,6 +315,7 @@ sub bbox {
 	    my %s = %$_;
 	    delete($s{type});
 	    $s{_x} = $w;
+	    $s{_strut} = $_;
 	    push( @{ $self->{_struts} }, \%s );
 	    # Add to bbox but not to inkbox.
 	    $w += $ab[2];

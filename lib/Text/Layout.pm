@@ -1913,6 +1913,73 @@ sub get_struts {
 
 =over
 
+=item align_struts( $other )
+
+Aligns the fragments in both layouts to each other, based on the struts.
+
+This will adjust the widths of the struts of both participants.
+
+=back
+
+=cut
+
+sub align_struts {
+    my ( $self, $other ) = @_;
+    my @s1 = $self->get_struts;
+    my @s2 = $other->get_struts;
+    # warn("Struts mismatch\n") unless @s1 == @s2;
+
+    # Accumulated displacements.
+    my $dx1 = 0;
+    my $dx2 = 0;
+
+    # Process struts.
+    for my $s1 ( @s1 ) {
+	last unless @s2;
+
+	my $s2 = shift(@s2);
+
+	# Displacement.
+	my $d = ( $s1->{_x} + $dx1 ) - ( $s2->{_x} + $dx2 );
+
+	# Adjust the smaller to the larger.
+	if ( $d < 0 ) {
+	    $s1->{_strut}->{width} -= $d;
+	    $dx1 -= $d;
+	}
+	elsif ( $d > 0 ) {
+	    $s2->{_strut}->{width} += $d;
+	    $dx2 += $d;
+	}
+    }
+}
+
+=over
+
+=item spread_struts
+
+Evenly distributes the available space over the struts, if any.
+
+=back
+
+=cut
+
+sub spread_struts {
+    my ( $self, $width ) = @_;
+    my $w = $width || $self->get_width;
+    return unless $w;
+    my @s1 = $self->get_struts;
+    return unless @s1;
+    my $dx1 = ( $w - $self->get_pixel_size->{width} ) / @s1;
+
+    # Process struts.
+    for my $s1 ( @s1 ) {
+	$s1->{_strut}->{width} += $dx1;
+    }
+}
+
+=over
+
 =item show( $x, $y, $text )
 
 Transfers the content of this layout instance to the designated
