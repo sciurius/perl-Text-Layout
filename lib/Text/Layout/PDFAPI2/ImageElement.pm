@@ -175,7 +175,6 @@ method parse( $ctx, $k, $v ) {
     }
 
     return \%ctl;
-    return { type => "ignore" };
 }
 
 method render( $fragment, $gfx, $x, $y ) {
@@ -213,7 +212,7 @@ method render( $fragment, $gfx, $x, $y ) {
 
     $gfx->object( $img, @a );
 
-    return \@abox;
+    return { abox => \@abox };
 }
 
 method bbox( $fragment ) {

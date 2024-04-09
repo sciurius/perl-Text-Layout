@@ -108,7 +108,7 @@ sub render {
 
 	elsif ( my $hd = $self->get_element_handler($fragment->{type}) ) {
 	    $text->textend;
-	    my $ab = $hd->render($fragment, $text, $x, $y-$bl);
+	    my $ab = $hd->render($fragment, $text, $x, $y-$bl)->{abox};
 	    $text->textstart;
 	    $x += $ab->[2];
 	}

@@ -1,3 +1,3 @@
 # This file is generated. Do not edit!
 package Text::Layout::Version;
-our $VERSION = "0.035_006";
+our $VERSION = "0.035_007";
