@@ -4,6 +4,8 @@ Revision history for Text::Layout
 
 	Introducing struts.
 	Update SYNOPOSIS example to modern PDF::API2 conventions.
+	Fix/enhance drawing of brackgrounds.
+	Fix problem with wrongly calculated underlining.
 
 0.035	2024-02-19
 

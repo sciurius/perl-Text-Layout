@@ -98,9 +98,38 @@ sub render {
 	    }
 	}
     }
-    my $upem = 1000;
+    my $upem = 1000;		# as per PDF::API2
 
-    foreach my $fragment ( @{ $self->{_content} } ) {
+    my $draw_bg = sub {
+	my ( $fx, $nfx, $x, $y, $w ) = @_;
+	my $h = $bb[2];		# "border"
+	my $d = abs($h)/25;
+
+	# If first with background, extend a little to the left.
+	if ( $fx == 0 || !$self->{_content}->[$fx-1]->{bgcolor} ) {
+	    $x -= $d;
+	    $w += $d;
+	}
+	# If last with background, extend a little to the right.
+	if ( $fx == $nfx-1 || !$self->{_content}->[$fx+1]->{bgcolor} ) {
+	    $w += 2*$d;
+	}
+
+	# Draw the background.
+	$text->textend;
+	my $gfx = $text;	# sanity
+	$gfx->save;
+	$gfx->fillcolor( $self->{_content}->[$fx]->{bgcolor} );
+	$gfx->linewidth(0);
+	$gfx->rectangle( $x, $y+$d, $x+$w, $y+$h-$d );
+	$text->fill;
+	$gfx->restore;
+	$text->textstart;
+    };
+
+    my $nfx = @{ $self->{_content} };
+    for ( my $fx = 0; $fx < $nfx; $fx++ ) {
+	my $fragment = $self->{_content}->[$fx];
 
 	if ( $fragment->{type} eq "strut" ) {
 	    $x += $fragment->{width};
@@ -140,20 +169,7 @@ sub render {
 	    $w += $_->{ax} for @$info;
 
 	    if ( $fragment->{bgcolor} ) {
-		my $y = $y0;
-		my $h = -$sz*($f->get_ascender-$f->get_descender)/$upem;
-		my $x = $x0;
-		$text->textend;
-		my $gfx = $text;
-		$gfx->save;
-		$gfx->fillcolor($fragment->{bgcolor});
-		$gfx->strokecolor($fragment->{bgcolor});
-		$gfx->linewidth(2);
-		$gfx->rectangle($x, $y, $x+$w, $y+$h);
-		$text->close;
-		$text->fillstroke;
-		$gfx->restore;
-		$text->textstart;
+		$draw_bg->( $fx, $nfx, $x0, $y0, $w );
 	    }
 
 	    foreach my $g ( @$info ) {
@@ -191,23 +207,9 @@ sub render {
 		my $w = $font->width($t) * $sz;
 
 		if ( $fragment->{bgcolor} ) {
-		    my ( $d0, $a0 );
-		    $d0 = $f->get_descender * $sz / $upem;
-		    $a0 = $f->get_ascender * $sz / $upem;
-		    my $y = $y0;
-		    my $h = -($a0-$d0);
-		    my $x = $x0;
-		    $text->textend;
-		    my $gfx = $text;
-		    $gfx->save;
-		    $gfx->fillcolor($fragment->{bgcolor});
-		    $gfx->strokecolor($fragment->{bgcolor});
-		    $gfx->linewidth(2);
-		    $gfx->rectangle($x, $y, $x+$w, $y+$h);
-		    $text->fillstroke;
-		    $gfx->restore;
-		    $text->textstart;
+		    $draw_bg->( $fx, $nfx, $x0, $y0, $w );
 		}
+
 		$text->font( $f->get_font, $sz );
 		$text->translate( $x, $y );
 		$text->text($t);
@@ -216,9 +218,9 @@ sub render {
 	}
 
 	next unless $x > $x0;
-
-	my $dw = 1000;
-	my $xh = $font->xheight;
+	# While PDF::API2 delivers font metrics in 1/1000s,
+	# underlinethickness and position are unscaled UPEM.
+	my $dw = $font->data->{upem} // 1000;
 
 	my @strikes;
 	if ( $fragment->{underline} && $fragment->{underline} ne 'none' ) {
@@ -239,9 +241,10 @@ sub render {
 
 	if ( $fragment->{strikethrough} ) {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
+	    my $xh = $font->xheight / 1000;
 	    my $d = -( $f->{strikeline_position}
-		       ? $f->{strikeline_position}
-		       : 0.6*$xh ) * $sz/$dw;
+		       ? $f->{strikeline_position} / $dw
+		       : 0.6*$xh ) * $sz;
 	    my $h = ( $f->{strikeline_thickness}
 		      || $f->{underline_thickness}
 		      || $font->underlinethickness ) * $sz/$dw;
@@ -251,12 +254,13 @@ sub render {
 
 	if ( $fragment->{overline} && $fragment->{overline} ne 'none' ) {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
+	    my $xh = $font->xheight / 1000;
 	    my $h = ( $f->{overline_thickness}
 		      || $f->{underline_thickness}
 		      || $font->underlinethickness ) * $sz/$dw;
 	    my $d = -( $f->{overline_position}
 		       ? $f->{overline_position} * $sz/$dw
-		       : $xh*$sz/$dw + 2*$h );
+		       : $xh*$sz + 2*$h );
 	    my $col = $fragment->{overline_color} // $fragment->{color};
 	    if ( $fragment->{overline} eq 'double' ) {
 		push( @strikes, [ $d-0.125*$h, $h * 0.75, $col ],
