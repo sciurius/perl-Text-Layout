@@ -273,6 +273,11 @@ method bbox( $fragment ) {
 	$dy += $bbox[1] * $yscale;
     }
 
+    # Use the image baseline, if any.
+    if ( $fragment->{base} ) {
+	$dy += ( $bbox[1] - $fragment->{base} ) * $yscale;
+    }
+    
     @bb = ( $dx, $dy, $width + $dx, $height + $dy, $xscale, $yscale );
     @abox = @bb;
 
