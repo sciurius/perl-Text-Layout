@@ -115,6 +115,16 @@ sub render {
 	    $w += 2*$d;
 	}
 
+	# If next is a strut, followed by same bg color,
+	# have the background span the strut.
+	#### TODO: Span multiple struts.
+	if ( $fx < $nfx-2
+	     && $self->{_content}->[$fx+1]->{type} eq "strut"
+	     && $self->{_content}->[$fx+2]->{bgcolor}
+	     && $self->{_content}->[$fx+2]->{bgcolor}
+	     eq $self->{_content}->[$fx]->{bgcolor} ) {
+	    $w += $self->{_content}->[$fx+1]->{width};
+	}
 	# Draw the background.
 	$text->textend;
 	my $gfx = $text;	# sanity
