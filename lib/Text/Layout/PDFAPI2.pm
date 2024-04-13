@@ -118,12 +118,19 @@ sub render {
 	# If next is a strut, followed by same bg color,
 	# have the background span the strut.
 	#### TODO: Span multiple struts.
-	if ( $fx < $nfx-2
-	     && $self->{_content}->[$fx+1]->{type} eq "strut"
-	     && $self->{_content}->[$fx+2]->{bgcolor}
-	     && $self->{_content}->[$fx+2]->{bgcolor}
-	     eq $self->{_content}->[$fx]->{bgcolor} ) {
-	    $w += $self->{_content}->[$fx+1]->{width};
+	my $delta;
+	for ( my $i = $fx+1; $i < $nfx; $i++ ) {
+	    if ( $self->{_content}->[$i]->{type} eq "strut" ) {
+		$delta //= 0;
+		$delta += $self->{_content}->[$i]->{width};
+	    }
+	    elsif ( defined($delta)
+		 && $self->{_content}->[$i]->{bgcolor}
+		 && $self->{_content}->[$i]->{bgcolor}
+		    eq $self->{_content}->[$fx]->{bgcolor} ) {
+		$w += $delta;
+		last;
+	    }
 	}
 	# Draw the background.
 	$text->textend;
