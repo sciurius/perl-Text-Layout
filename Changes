@@ -1,6 +1,8 @@
 Revision history for Text::Layout
 
-0.036
+0.000
+
+0.036	2024-04-22
 
 	Introducing struts.
 	Update SYNOPOSIS example to modern PDF::API2 conventions.
