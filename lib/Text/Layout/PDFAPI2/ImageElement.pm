@@ -94,6 +94,9 @@ Note the direction is opposite to the Pango C<rise>.
 A scaling factor, to be applied I<after> width/height scaling.
 The value may be expressed as a percentage.
 
+Independent horizontal and vertical scaling can be specified as two
+comma-separated scale values.
+
 =item C<align=>I<XXX>
 
 Align the image in the width given by C<w=>I<NNN>.
@@ -166,8 +169,16 @@ method parse( $ctx, $k, $v ) {
 	    $ctl{$k} = $v;
 	}
 	elsif ( $k =~ /^(scale)$/ ) {
-	    $v = $1 / 100 if $v =~ /^([\d.]+)\%$/;
-	    $ctl{$k} = $v;
+	    my @s;
+	    for ( split( /,/, $v ) ) {
+		$_ = $1 / 100 if /^([\d.]+)\%$/;
+		push( @s, $_ );
+	    }
+	    push( @s, $s[0] ) unless @s > 1;
+	    carp("Invalid " . TYPE . " attribute: \"$k\" (too many values)\n")
+	      unless @s == 2;
+	    $ctl{$k} = \@s;
+	    use DDP; p %ctl;
 	}
 	else {
 	    carp("Invalid " . TYPE . " attribute: \"$k\"\n");
@@ -256,12 +267,14 @@ method bbox( $fragment ) {
     }
 
     # Apply custom scale.
-    my $scale = $fragment->{scale} // 1;
-    if ( $scale != 1 ) {
-	$xscale *= $scale;
-	$yscale *= $scale;
-	$width  *= $scale;
-	$height *= $scale;
+    my ( $sx, $sy ) = @{$fragment->{scale} // [1,1]};
+    if ( $sx != 1 ) {
+	$xscale *= $sx;
+	$width  *= $sx;
+    }
+    if ( $sy != 1 ) {
+	$yscale *= $sy;
+	$height *= $sy;
     }
 
     # Displacement wrt. the origin.
