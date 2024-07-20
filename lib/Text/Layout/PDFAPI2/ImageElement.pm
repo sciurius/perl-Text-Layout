@@ -178,7 +178,6 @@ method parse( $ctx, $k, $v ) {
 	    carp("Invalid " . TYPE . " attribute: \"$k\" (too many values)\n")
 	      unless @s == 2;
 	    $ctl{$k} = \@s;
-	    use DDP; p %ctl;
 	}
 	else {
 	    carp("Invalid " . TYPE . " attribute: \"$k\"\n");
