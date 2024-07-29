@@ -578,8 +578,8 @@ On Linux, fallback using fontconfig.
 
 =cut
 
-my $stylep  = qr/^( (?:heavy|bold|semi(?:bold)?|medium|book|light)? (?:oblique|italic)  )$/ix;
-my $weightp = qr/^( (?:heavy|bold|semi(?:bold)?|medium|book|light)  (?:oblique|italic)? )$/ix;
+my $stylep  = qr/^(?:heavy|bold|semi(?:bold)?|medium|book|light)? (oblique|italic)$/ix;
+my $weightp = qr/^(heavy|bold|semi(?:bold)?|medium|book|light) (?:oblique|italic)?$/ix;
 
 sub from_string {
     shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
@@ -625,9 +625,11 @@ sub parse {
 	}
 	elsif ( $t =~ $stylep ) {
 	    $style = "italic";
+	    $weight = $1 if $t =~ $weightp;
 	}
 	elsif ( $t =~ $weightp ) {
 	    $weight = $1;
+	    $style = $1 if $t =~ $stylep;
 	}
 	elsif ( $t eq "normal" ) {
 	    $style = $weight = "";
