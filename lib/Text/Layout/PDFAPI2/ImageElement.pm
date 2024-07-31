@@ -143,7 +143,7 @@ use Text::Layout::Utils qw(parse_kv);
 
 field $pdf  :param :accessor;
 
-use constant DEBUG => 1;
+use constant DEBUG => 0;
 
 method parse( $ctx, $k, $v ) {
 
