@@ -4,6 +4,7 @@ Revision history for Text::Layout
 
 	Add independent horizontal and vertical scaling for images.
 	Fix bold/italic parsing.
+	Add design_scale for images.
 
 0.037	2024-06-30
 

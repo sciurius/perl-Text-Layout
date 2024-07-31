@@ -143,7 +143,7 @@ use Text::Layout::Utils qw(parse_kv);
 
 field $pdf  :param :accessor;
 
-use constant DEBUG => 0;
+use constant DEBUG => 1;
 
 method parse( $ctx, $k, $v ) {
 
@@ -265,6 +265,14 @@ method bbox( $fragment ) {
 	$yscale = $height / $img_height;
     }
 
+    # Apply design scale.
+    my $sd = $fragment->{design_scale} // 1;
+    if ( $sd != 1 ) {
+	$xscale *= $sd;
+	$width  *= $sd;
+	$yscale *= $sd;
+	$height *= $sd;
+    }
     # Apply custom scale.
     my ( $sx, $sy ) = @{$fragment->{scale} // [1,1]};
     if ( $sx != 1 ) {
