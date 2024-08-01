@@ -265,14 +265,13 @@ method bbox( $fragment ) {
 	$yscale = $height / $img_height;
     }
 
-    # Apply design scale.
-    my $sd = $fragment->{design_scale} // 1;
-    if ( $sd != 1 ) {
-	$xscale *= $sd;
-	$width  *= $sd;
-	$yscale *= $sd;
-	$height *= $sd;
+    # Apply design scale. This cannot be set via properties but it
+    # intended for 3rd party plugins.
+    my $ds = $fragment->{design_scale} || 1;
+    if ( $ds != 1 ) {
+	$_ *= $ds for $xscale, $yscale, $width, $height;
     }
+
     # Apply custom scale.
     my ( $sx, $sy ) = @{$fragment->{scale} // [1,1]};
     if ( $sx != 1 ) {
