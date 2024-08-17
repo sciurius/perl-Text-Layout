@@ -264,13 +264,14 @@ or
 =cut
 
 sub register_aliases {
+    use Storable qw(dclone);
     shift if UNIVERSAL::isa( $_[0], __PACKAGE__ );
     my ( $family, @aliases ) = @_;
     carp("Unknown font family: $family")
       unless exists $fonts{lc $family};
     foreach ( @aliases ) {
 	foreach ( split( /\s*,\s*/, $_ ) ) {
-	    $fonts{lc $_} = $fonts{lc $family};
+	    $fonts{lc $_} = dclone( $fonts{lc $family} );
 	}
     }
 }
