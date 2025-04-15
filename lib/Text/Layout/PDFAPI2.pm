@@ -152,19 +152,10 @@ sub render {
 	    $x += $fragment->{width};
 	    if ( length($fragment->{label}) ) {
 		my $pdf = $text->{' api'};
-		my $page = $text->{' apipage'};
-		my $target = $fragment->{label};
-
-		# Augmented API for apps that keep track of bookmarks.
-		my $c = $pdf->can("named_dest_fiddle");
-		$target = $pdf->$c($target) if $c;
-		$c = $pdf->can("named_dest_register");
-		$pdf->$c( $target, $page );
-
-		$c = ref($pdf) . '::NamedDestination';
-		my $dest = $c->new($pdf);
-		$dest->goto( $page, xyz => (undef,undef,undef) );
-		$pdf->named_destination( 'Dests', $target, $dest );
+		my $x = ref($pdf) . '::NamedDestination';
+		my $dest = $x->new($pdf);
+		$dest->goto( $text->{' apipage'}, xyz => (undef,undef,undef) );
+		$pdf->named_destination( 'Dests', $fragment->{label}, $dest );
 	    }
 	}
 
@@ -320,15 +311,8 @@ sub render {
 	    my $sz = $fragment->{size} || $self->{_currentsize};
 	    my $ann = $text->{' apipage'}->annotation;
 	    my $target = $fragment->{href};
-
 	    if ( $target =~ /^#(.+)/ ) { # named destination
-		# Augmented API for apps that keep track of bookmarks.
-		my $pdf = $text->{' api'};
-		if ( my $c = $pdf->can("named_dest_fiddle") ) {
-		    $target = $pdf->$c($1);
-		}
-
-		$ann->link($target);
+		$ann->link($1);
 	    }
 	    else {
 		$ann->uri($target);
