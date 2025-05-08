@@ -533,6 +533,20 @@ sub load_font {
 					   );
 	};
     }
+    elsif ( $actual =~ /(.*\.ttc):(.*)$/ ) {
+	my $file = $1;
+	my $sel = $2;
+	eval {
+	    my $ttc = $self->{_context}->ttc($file);
+	    $ff = $self->{_context}->ttcfont( $ttc,
+					      font => $sel,
+					     -dokern => 1,
+					     $fd->{nosubset}
+					     ? ( -nosubset => 1 )
+					     : ( -nosubset => 0 ),
+					    );
+	};
+    }
     else {
 	eval {
 	    $ff = $self->{_context}->corefont( $actual, -dokern => 1 );
